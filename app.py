@@ -22,7 +22,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# --- Database Models (With new 'tds_section' column) ---
+# --- Database Models ---
 class Deductee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pan_number = db.Column(db.String(10), unique=True, nullable=False, index=True)
@@ -34,16 +34,23 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     deductee_id = db.Column(db.Integer, db.ForeignKey('deductee.id'), nullable=False)
     deductee = db.relationship('Deductee', back_populates='transactions')
+    
     tds_section = db.Column(db.String(10), nullable=True, default='194C') 
     invoice_date = db.Column(db.DateTime, nullable=False)
     invoice_amount = db.Column(db.Float, nullable=False, default=0.0) 
     assessable_amount = db.Column(db.Float, nullable=False, default=0.0)
+    
+    # NEW: Fields for Payment Mode and Reference
+    payment_mode = db.Column(db.String(50), nullable=True)
+    payment_reference = db.Column(db.String(100), nullable=True)
+
     tds_rate = db.Column(db.Float, nullable=False, default=1.0)
     tax = db.Column(db.Float, nullable=False, default=0.0)
     sur_charge = db.Column(db.Float, nullable=False, default=0.0)
     cess = db.Column(db.Float, nullable=False, default=0.0)
     interest = db.Column(db.Float, nullable=False, default=0.0)
     total_tds = db.Column(db.Float, nullable=False, default=0.0)
+    
     challan_id = db.Column(db.Integer, db.ForeignKey('challan.id'), nullable=True)
     challan = db.relationship('Challan', back_populates='transactions')
 
@@ -59,10 +66,6 @@ class Challan(db.Model):
     challan_number = db.Column(db.String(50), nullable=True)
     bsr_code = db.Column(db.String(7), nullable=True)
     payment_date = db.Column(db.DateTime, nullable=True)
-    
-    # --- THIS IS THE FIX ---
-    # It was db.relationship('Challan', ...)
-    # It is now db.relationship('Transaction', ...)
     transactions = db.relationship('Transaction', back_populates='challan')
 
 
@@ -124,6 +127,10 @@ def add_transaction():
         invoice_amount = float(request.form.get('invoice_amount'))
         assessable_amount = float(request.form.get('assessable_amount'))
         
+        # NEW: Get new fields from form
+        payment_mode = request.form.get('payment_mode')
+        payment_reference = request.form.get('payment_reference')
+        
         deductee = Deductee.query.filter_by(pan_number=pan).first()
         if not deductee:
             deductee = Deductee(pan_number=pan, name=name, deductee_type=deductee_type)
@@ -142,14 +149,16 @@ def add_transaction():
             deductee=deductee, tds_section=section, invoice_date=invoice_date,
             invoice_amount=invoice_amount, assessable_amount=assessable_amount,
             tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
-            cess=cess, interest=0.0, total_tds=total_tds
+            cess=cess, interest=0.0, total_tds=total_tds,
+            # NEW: Save new fields
+            payment_mode=payment_mode, payment_reference=payment_reference
         )
         db.session.add(new_transaction)
         db.session.commit()
         flash('Transaction saved successfully!')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error saving transaction: {e}')
+        flash(f'Error saving transaction: {str(e)}')
     return redirect(url_for('index'))
 
 @app.route('/client')
@@ -164,9 +173,13 @@ def client_submit():
         deductee_type = request.form.get('deductee_type') 
         section = request.form.get('tdsSection')
         invoice_date_str = request.form.get('invoice_date')
-        invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
+        # This form only has one amount, so we use it for both
         assessable_amount = float(request.form.get('assessable_amount'))
         invoice_amount = assessable_amount 
+        
+        # NEW: Get new fields from form
+        payment_mode = request.form.get('payment_mode')
+        payment_reference = request.form.get('payment_reference')
         
         deductee = Deductee.query.filter_by(pan_number=pan).first()
         if not deductee:
@@ -188,14 +201,15 @@ def client_submit():
             deductee=deductee, tds_section=section, invoice_date=invoice_date,
             invoice_amount=invoice_amount, assessable_amount=assessable_amount,
             tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
-            cess=cess, interest=0.0, total_tds=total_tds
+            cess=cess, interest=0.0, total_tds=total_tds,
+            # NEW: Save new fields
+            payment_mode=payment_mode, payment_reference=payment_reference
         )
         db.session.add(new_transaction)
         db.session.commit()
         flash('Record submitted successfully. Thank you!')
     except Exception as e:
         db.session.rollback()
-        # Provide the actual error to the flash message for debugging
         flash(f'Error submitting record: {str(e)}')
     return redirect(url_for('client_entry'))
 

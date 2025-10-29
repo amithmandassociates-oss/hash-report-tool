@@ -11,8 +11,7 @@
         .nav a { float: left; color: #f2f2f2; text-align: center; padding: 14px 16px; text-decoration: none; font-size: 17px; }
         .nav a:hover { background-color: #ddd; color: black; }
         .nav a.active { background-color: #007bff; color: white; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; } /* Smaller font */
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #007bff; color: white; }
         tr:nth-child(even) { background-color: #f2f2f2; }
@@ -20,13 +19,11 @@
 </head>
 <body>
     <div class="container">
-        
         <div class="nav">
             <a href="/">Data Entry Form</a>
             <a href="/annexure" class="active">TDS Annexure Report</a>
             <a href="/challan">Challan Summary</a>
         </div>
-
         <h1>TDS Annexure Report (All Transactions)</h1>
 
         <table>
@@ -35,13 +32,15 @@
                     <th>SL.</th>
                     <th>Date</th>
                     <th>PAN</th>
-                    <th>Name of Deductee</th>
-                    <th>TDS Section</th>
+                    <th>Name</th>
+                    <th>Section</th>
                     <th>Assessable Amt</th>
                     <th>TDS Rate</th>
                     <th>Tax</th>
                     <th>Cess</th>
                     <th>Total TDS</th>
+                    <th>Pay Mode</th>
+                    <th>Pay Ref.</th>
                 </tr>
             </thead>
             <tbody>
@@ -56,12 +55,13 @@
                     <td>{{ "%.2f"|format(tx.tds_rate) }}%</td>
                     <td>{{ "%.2f"|format(tx.tax) }}</td>
                     <td>{{ "%.2f"|format(tx.cess) }}</td>
-                    <td>{{ "%.2f"|format(tx.total_tds) }}</td>
+                    <td><b>{{ "%.2f"|format(tx.total_tds) }}</b></td>
+                    <td>{{ tx.payment_mode }}</td>
+                    <td>{{ tx.payment_reference }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
     </div>
 </body>
 </html>

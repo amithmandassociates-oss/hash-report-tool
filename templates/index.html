@@ -13,44 +13,37 @@
             width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
         }
         button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
         h1, h2 { text-align: center; }
         .message { padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 15px; }
         .nav { background-color: #333; overflow: hidden; border-radius: 4px; margin-bottom: 20px; }
         .nav a { float: left; color: #f2f2f2; text-align: center; padding: 14px 16px; text-decoration: none; font-size: 17px; }
-        .nav a:hover { background-color: #ddd; color: black; }
         .nav a.active { background-color: #007bff; color: white; }
     </style>
 </head>
 <body>
-
     <div class="container">
-
         <div class="nav">
             <a href="/" class="active">Data Entry Form</a>
             <a href="/annexure">TDS Annexure Report</a>
             <a href="/challan">Challan Summary</a>
         </div>
-
         <h1>TDS Entry Form (Admin)</h1>
         
         {% with messages = get_flashed_messages() %}
           {% if messages %}
-            <div class="message">
-              {{ messages[0] }}
-            </div>
+            <div class="message">{{ messages[0] }}</div>
           {% endif %}
         {% endwith %}
 
         <form action="/add" method="POST">
             <h2>Deductee Details</h2>
             <div class="form-group">
-                <label for="name">Name of Deductee (Party Name)</label>
+                <label for="name">Name of Deductee</label>
                 <input type="text" id="name" name="name" required>
             </div>
             <div class="form-group">
                 <label for="pan">PAN Number</label>
-                <input type="text" id="pan" name="pan" required pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}" title="Please enter a valid PAN (e.g., ABCDE1234F)">
+                <input type="text" id="pan" name="pan" required>
             </div>
             <div class="form-group">
                 <label for="deductee_type">Deductee Type</label>
@@ -59,40 +52,52 @@
                     <option value="huf">HUF</option>
                     <option value="firm">Firm / LLP</option>
                     <option value="company">Company</option>
-                    <option value="other">Others (AOP, BOI, Trust, etc.)</option>
+                    <option value="other">Others</option>
                 </select>
             </div>
 
             <h2>Transaction Details</h2>
-            
             <div class="form-group">
-                <label for="tdsSection">Type of Payment (TDS Section)</label>
+                <label for="tdsSection">TDS Section</label>
                 <select id="tdsSection" name="tdsSection" required>
-                    <option value="">-- Select a Payment Type --</option>
-                    <option value="194C">194C - Payment to Contractors</option>
-                    <option value="194H">194H - Commission or Brokerage</option>
-                    <option value="194I-A">194I-A - Rent (Plant & Machinery)</option>
-                    <option value="194I-B">194I-B - Rent (Land, Building, etc.)</option>
-                    <option value="194J">194J - Professional/Technical Fees</option>
+                    <option value="194C">194C - Contractors</option>
+                    <option value="194H">194H - Commission</option>
+                    <option value="194I-A">194I-A - Rent (P&M)</option>
+                    <option value="194I-B">194I-B - Rent (Land)</option>
+                    <option value="194J">194J - Fees</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="invoice_date">Date of Payment</label>
                 <input type="date" id="invoice_date" name="invoice_date" required>
             </div>
             <div class="form-group">
-                <label for="invoice_amount">Total Invoice Amount (e.g., 100000)</label>
+                <label for="invoice_amount">Total Invoice Amount</label>
                 <input type="number" step="0.01" id="invoice_amount" name="invoice_amount" required>
             </div>
             <div class="form-group">
-                <label for="assessable_amount">Assessable Amount (Amount for TDS)</label>
+                <label for="assessable_amount">Assessable Amount (for TDS)</label>
                 <input type="number" step="0.01" id="assessable_amount" name="assessable_amount" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="paymentMode">Payment Mode</label>
+                <select id="paymentMode" name="payment_mode" required>
+                    <option value="Bank Transfer (NEFT/RTGS)">Bank Transfer (NEFT/RTGS)</option>
+                    <option value="Bank Transfer (IMPS)">Bank Transfer (IMPS)</option>
+                    <option value="UPI (GPay/PayTM/etc)">UPI (GPay/PayTM/etc)</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="paymentReference">Payment Reference</label>
+                <input type="text" id="paymentReference" name="payment_reference">
             </div>
 
             <button type="submit">Calculate & Save Transaction</button>
         </form>
     </div>
-
 </body>
 </html>
