@@ -166,9 +166,18 @@ def client_submit():
             # No file path
             
         tds_rate = 0.0
-        if len(pan) != 10: tds_rate = 20.0
-        elif deductee_type == 'Company': tds_rate = 2.0
-        else: tds_rate = 1.0
+        if len(pan) != 10:
+            tds_rate = 20.0
+        elif deductee_type in ['company', 'firm', 'other']:
+            # This handles Company, Firm, AOP, BOI, etc.
+            tds_rate = 2.0
+        elif deductee_type in ['individual', 'huf']:
+            # This handles Individual and HUF
+            tds_rate = 1.0
+        else:
+            # A fallback just in case
+            tds_rate = 1.0
+
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
         sur_charge = 0.0
         cess = math.ceil(tax * 0.04)
