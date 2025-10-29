@@ -8,7 +8,6 @@ from sqlalchemy import func, extract, and_
 # --- App & Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# This is the smart database logic. It's perfect.
 database_uri = os.environ.get('DATABASE_URL')
 if database_uri:
     if database_uri.startswith("postgres://"):
@@ -18,26 +17,27 @@ else:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a_very_secret_key_change_this' 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_uri # Use the new smart URL
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# All UPLOAD_FOLDER logic is now GONE
 db = SQLAlchemy(app)
 
-# --- Database Models (Simplified) ---
+# --- Database Models (With new 'tds_section' column) ---
 class Deductee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pan_number = db.Column(db.String(10), unique=True, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     deductee_type = db.Column(db.String(20), nullable=False, default='Other')
-    # pan_image_path column is now GONE
     transactions = db.relationship('Transaction', back_populates='deductee')
 
 class Transaction(db.Model):
-    # No changes in this model
     id = db.Column(db.Integer, primary_key=True)
     deductee_id = db.Column(db.Integer, db.ForeignKey('deductee.id'), nullable=False)
     deductee = db.relationship('Deductee', back_populates='transactions')
+    
+    # NEW: Store the TDS section for better reporting
+    tds_section = db.Column(db.String(10), nullable=True, default='194C') 
+    
     invoice_date = db.Column(db.DateTime, nullable=False)
     invoice_amount = db.Column(db.Float, nullable=False, default=0.0) 
     assessable_amount = db.Column(db.Float, nullable=False, default=0.0)
@@ -51,7 +51,6 @@ class Transaction(db.Model):
     challan = db.relationship('Challan', back_populates='transactions')
 
 class Challan(db.Model):
-    # No changes in this model
     id = db.Column(db.Integer, primary_key=True)
     month = db.Column(db.Integer, nullable=False)
     year = db.Column(db.Integer, nullable=False)
@@ -65,9 +64,8 @@ class Challan(db.Model):
     payment_date = db.Column(db.DateTime, nullable=True)
     transactions = db.relationship('Transaction', back_populates='challan')
 
-# All file helper functions are GONE
 
-# --- Helper Function for Summaries (Same as before) ---
+# --- Helper Function for Summaries ---
 def get_monthly_summary(year, month):
     summary = db.session.query(
         func.sum(Transaction.tax).label('total_tax'),
@@ -86,6 +84,28 @@ def get_monthly_summary(year, month):
         'total_payable': total_payable
     }
 
+# --- NEW: Helper function to calculate TDS rate ---
+def get_tds_rate(pan, deductee_type, section):
+    if not pan or len(pan) != 10:
+        return 20.0  # High rate for invalid PAN
+    
+    if section == '194C':
+        if deductee_type in ['individual', 'huf']:
+            return 1.0
+        else:  # company, firm, other
+            return 2.0
+    elif section == '194H':
+        return 5.0
+    elif section == '194J':
+        return 10.0 # Assuming professional fees, not technical (2%)
+    elif section == '194I-A':
+        return 2.0 # Rent for Plant & Machinery
+    elif section == '194I-B':
+        return 10.0 # Rent for Land/Building
+    
+    return 0.0 # Default if section not found
+
+
 # --- Routes (Simplified) ---
 
 @app.route('/')
@@ -98,6 +118,9 @@ def add_transaction():
         pan = request.form.get('pan').upper()
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type')
+        # NEW: Get the TDS section
+        section = request.form.get('tdsSection') 
+        
         invoice_date_str = request.form.get('invoice_date')
         invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
         invoice_amount = float(request.form.get('invoice_amount'))
@@ -105,28 +128,34 @@ def add_transaction():
         
         deductee = Deductee.query.filter_by(pan_number=pan).first()
         if not deductee:
-            # No file path to add
             deductee = Deductee(pan_number=pan, name=name, deductee_type=deductee_type)
             db.session.add(deductee)
         else:
             deductee.name = name
             deductee.deductee_type = deductee_type
             
-        tds_rate = 0.0
-        if len(pan) != 10: tds_rate = 20.0
-        elif deductee_type == 'Company': tds_rate = 2.0
-        else: tds_rate = 1.0
+        # NEW: Use helper function for rate
+        tds_rate = get_tds_rate(pan, deductee_type, section)
+        
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
         sur_charge = 0.0
         cess = math.ceil(tax * 0.04)
         total_tds = tax + sur_charge + cess
+        
         new_transaction = Transaction(
-            deductee=deductee, invoice_date=invoice_date,
-            invoice_amount=invoice_amount, assessable_amount=assessable_amount,
-            tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
-            cess=cess, interest=0.0, total_tds=total_tds
+            deductee=deductee,
+            tds_section=section, # NEW: Save the section
+            invoice_date=invoice_date,
+            invoice_amount=invoice_amount, 
+            assessable_amount=assessable_amount,
+            tds_rate=tds_rate, 
+            tax=tax, 
+            sur_charge=sur_charge,
+            cess=cess, 
+            interest=0.0, 
+            total_tds=total_tds
         )
-        db.session.add(new_transaction)
+        db.session..add(new_transaction)
         db.session.commit()
         flash('Transaction saved successfully!')
     except Exception as e:
@@ -144,12 +173,13 @@ def client_submit():
         pan = request.form.get('pan').upper()
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type') 
+        # NEW: Get the TDS section
+        section = request.form.get('tdsSection')
+        
         invoice_date_str = request.form.get('invoice_date')
         invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
         assessable_amount = float(request.form.get('assessable_amount'))
         invoice_amount = assessable_amount 
-        
-        # All file upload logic is GONE
         
         deductee = Deductee.query.filter_by(pan_number=pan).first()
         if not deductee:
@@ -157,38 +187,32 @@ def client_submit():
                 pan_number=pan, 
                 name=name, 
                 deductee_type=deductee_type
-                # No file path
             )
             db.session.add(deductee)
         else:
             deductee.name = name
             deductee.deductee_type = deductee_type
-            # No file path
             
-        tds_rate = 0.0
-        if len(pan) != 10:
-            tds_rate = 20.0
-        elif deductee_type in ['company', 'firm', 'other']:
-            # This handles Company, Firm, AOP, BOI, etc.
-            tds_rate = 2.0
-        elif deductee_type in ['individual', 'huf']:
-            # This handles Individual and HUF
-            tds_rate = 1.0
-        else:
-            # A fallback just in case
-            tds_rate = 1.0
-
+        # NEW: Use helper function for rate
+        tds_rate = get_tds_rate(pan, deductee_type, section)
+        
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
         sur_charge = 0.0
         cess = math.ceil(tax * 0.04)
         total_tds = tax + sur_charge + cess
         
         new_transaction = Transaction(
-            deductee=deductee, invoice_date=invoice_date,
+            deductee=deductee,
+            tds_section=section, # NEW: Save the section
+            invoice_date=invoice_date,
             invoice_amount=invoice_amount,
             assessable_amount=assessable_amount,
-            tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
-            cess=cess, interest=0.0, total_tds=total_tds
+            tds_rate=tds_rate, 
+            tax=tax, 
+            sur_charge=sur_charge,
+            cess=cess, 
+            interest=0.0, 
+            total_tds=total_tds
         )
         db.session.add(new_transaction)
         db.session.commit()
@@ -198,14 +222,12 @@ def client_submit():
         flash(f'Error submitting record: {e}')
     return redirect(url_for('client_entry'))
 
-# The '/uploads' route is GONE
-
 @app.route('/annexure')
 def annexure_report():
     all_transactions = Transaction.query.order_by(Transaction.invoice_date).all()
     return render_template('annexure.html', transactions=all_transactions)
 
-# All other routes are the same
+# --- All other routes (challan, etc.) are the same ---
 @app.route('/challan')
 def challan_summary():
     pending_query = db.session.query(
@@ -276,7 +298,5 @@ def save_challan():
 # --- Main Application Runner ---
 if __name__ == '__main__':
     with app.app_context():
-        # This will create all the tables in the new database
-        # It will also update your local 'tds_database.db'
         db.create_all() 
     app.run(debug=True)

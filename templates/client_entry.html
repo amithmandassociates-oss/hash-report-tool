@@ -5,197 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Payment Record</title>
     <style>
-        /* This is the new, enhanced styling from our previous chat */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .container {
-            width: 100%;
-            max-width: 500px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 100%; max-width: 550px; background-color: #ffffff;
+            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden; animation: fadeIn 0.5s ease-out;
         }
-        h2, h3 {
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+        .header {
+            text-align: center; padding: 30px;
+            background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;
         }
-        .form-group {
-            margin-bottom: 16px;
+        /* LOGO IMG STYLE IS GONE */
+        .header h2 {
+            margin: 0; color: #333; font-weight: 600;
         }
+        .header p {
+            margin: 5px 0 0; color: #666; font-size: 0.9em;
+        }
+        .form-content { padding: 30px; }
+        h3 {
+            color: #007bff; border-bottom: 2px solid #007bff;
+            padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; font-weight: 600;
+        }
+        .form-group { margin-bottom: 20px; position: relative; }
         .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #555;
+            display: block; font-weight: 500; margin-bottom: 8px;
+            color: #555; font-size: 0.9em;
         }
         .form-group input,
         .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
+            width: 100%; padding: 12px; border: 1px solid #ccc;
+            border-radius: 8px; box-sizing: border-box; font-size: 16px;
+            font-family: 'Poppins', sans-serif; transition: all 0.3s ease;
         }
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none; border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
         }
-        /* Flash message style from your old file */
-        .message { 
-            padding: 10px; background-color: #d4edda; color: #155724; 
-            border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 15px; 
-        }
-        /* TDS Info box style */
+        .pan-helper { font-size: 0.85em; text-align: right; margin-top: 6px; }
+        .pan-helper a { color: #007bff; text-decoration: none; transition: color 0.2s; }
+        .pan-helper a:hover { color: #0056b3; text-decoration: underline; }
         #tdsInfo {
-            background-color: #e6f7ff; border: 1px solid #b3e0ff;
-            border-radius: 5px; padding: 12px; margin-top: 10px;
+            background-color: #e6f7ff; border-left: 4px solid #007bff;
+            border-radius: 4px; padding: 12px 15px; margin-top: 10px;
             font-size: 0.9em; color: #31708f;
         }
         #tdsInfo p { margin: 5px 0; }
-        .pan-helper { font-size: 0.85em; text-align: right; margin-top: 4px; }
+        #tdsInfo strong { color: #0056b3; }
+        .message {
+            padding: 15px; background-color: #d4edda; color: #155724;
+            border: 1px solid #c3e6cb; border-radius: 8px;
+            margin-bottom: 20px; text-align: center; font-weight: 500;
+        }
+        .submit-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            color: white; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: all 0.3s ease;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Client Payment Record</h2>
-        <p>Please enter the details of the payment you have made.</p>
-
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="message">
-              {{ messages[0] }}
-            </div>
-          {% endif %}
-        {% endwith %}
         
-        <form action="/client_submit" method="POST">
-            <h3>Deductee Details (The party you paid)</h3>
+        <div class="header">
+            <h2>MY TRIP HOLIDAYS COCHIN</h2>
+            <p>1st Floor, ABC Building, MG Road, Kochi, Kerala</p>
+        </div>
 
-            <div class="form-group">
-                <label for="panNumber">PAN Number</label>
-                <input type="text" id="panNumber" name="pan" placeholder="Enter 10-digit PAN" maxlength="10" required>
-                <div class="pan-helper">
-                    <a href="https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN" target="_blank">Verify PAN Manually</a>
+        <div class="form-content">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="message">
+                  {{ messages[0] }}
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="partyType">Type of Party (Auto-selected from PAN)</label>
-                <select id="partyType" name="deductee_type" required>
-                    <option value="">-- Waiting for PAN --</option>
-                    <option value="individual">Individual</option>
-                    <option value="huf">HUF</option>
-                    <option value="firm">Firm / LLP</option>
-                    <option value="company">Company</option>
-                    <option value="other">Others (AOP, BOI, Trust, etc.)</option>
-                </select>
-            </div>
+              {% endif %}
+            {% endwith %}
             
-            <div class="form-group">
-                <label for="panName">Name as per PAN</label>
-                <input type="text" id="panName" name="name" placeholder="Enter full name after verifying" required>
-            </div>
+            <form action="/client_submit" method="POST">
+                <h3>Deductee Details (The party you paid)</h3>
 
-            <h3>Transaction Details</h3>
+                <div class="form-group">
+                    <label for="panNumber">PAN Number</label>
+                    <input type="text" id="panNumber" name="pan" placeholder="Enter 10-digit PAN" maxlength="10" required>
+                    <div class="pan-helper">
+                        <a href="https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN" target="_blank">Verify PAN Manually</a>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="tdsSection">Type of Payment (TDS Section)</label>
-                <select id="tdsSection" name="tdsSection">
-                    <option value="">-- Select a Payment Type --</option>
+                <div class="form-group">
+                    <label for="partyType">Type of Party (Auto-selected from PAN)</label>
+                    <select id="partyType" name="deductee_type" required>
+                        <option value="">-- Waiting for PAN --</option>
+                        <option value="individual">Individual</option>
+                        <option value="huf">HUF</option>
+                        <option value="firm">Firm / LLP</option>
+                        <option value="company">Company</option>
+                        <option value="other">Others (AOP, BOI, Trust, etc.)</option>
                     </select>
-            </div>
-
-            <div class="form-group" id="tdsInfo" style="display: none;">
                 </div>
-            
-            <div class="form-group">
-                <label for="paymentDate">Date of Payment</label>
-                <input type="date" id="paymentDate" name="invoice_date" required>
-            </div>
+                
+                <div class="form-group">
+                    <label for="panName">Name as per PAN</label>
+                    <input type="text" id="panName" name="name" placeholder="Enter full name after verifying" required>
+                </div>
 
-            <div class="form-group">
-                <label for="amountPaid">Amount Paid (Assessable Amount)</label>
-                <input type="number" step="0.01" id="amountPaid" name="assessable_amount" placeholder="e.g., 50000" required>
-            </div>
+                <h3>Transaction Details</h3>
 
-            <button type="submit" class="submit-btn">Submit Record</button>
-        </form>
+                <div class="form-group">
+                    <label for="tdsSection">Type of Payment (TDS Section)</label>
+                    <select id="tdsSection" name="tdsSection" required>
+                        <option value="">-- Select a Payment Type --</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="tdsInfo" style="display: none;">
+                    </div>
+                
+                <div class="form-group">
+                    <label for="paymentDate">Date of Payment</label>
+                    <input type="date" id="paymentDate" name="invoice_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="amountPaid">Amount Paid (Assessable Amount)</label>
+                    <input type="number" step="0.01" id="amountPaid" name="assessable_amount" placeholder="e.g., 50000" required>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Record</button>
+            </form>
+        </div>
     </div>
 
     <script>
         const tdsData = {
             "194C": {
                 title: "Payment to Contractors",
-                reason: "For carrying out any work (including supply of labour).",
-                threshold: "₹30,000 (single) or ₹1,00,000 (aggregate in FY)",
+                reason: "Payment for work (e.g., sub-contracted cab)",
+                threshold: "₹30,000 (single) or ₹1,00,000 (aggregate)",
                 rates: {
-                    individual: "1.0%",
-                    huf: "1.0%",
-                    firm: "2.0%",
-                    company: "2.0%",
-                    other: "2.0%"
-                }
-            },
-            "194I": {
-                title: "Rent (Land, Building, Furniture)",
-                reason: "Payment of rent for Land, Building, or Furniture.",
-                threshold: "₹2,40,000 per financial year",
-                rates: {
-                    individual: "10.0%",
-                    huf: "10.0%",
-                    firm: "10.0%",
-                    company: "10.0%",
-                    other: "10.0%"
-                }
-            },
-            "194J": {
-                title: "Fees for Professional or Technical Services",
-                reason: "Payments for professional (legal, medical, engineering) or technical services, royalty, etc.",
-                threshold: "₹30,000 per financial year",
-                rates: {
-                    individual: "10.0%",
-                    huf: "10.0%",
-                    firm: "10.0%",
-                    company: "10.0%",
-                    other: "10.0%"
+                    individual: "1.0%", huf: "1.0%", firm: "2.0%",
+                    company: "2.0%", other: "2.0%"
                 }
             },
             "194H": {
                 title: "Commission or Brokerage",
-                reason: "Payments for commission or brokerage.",
+                reason: "Payment for commission (e.g., to travel agents)",
                 threshold: "₹15,000 per financial year",
                 rates: {
-                    individual: "5.0%",
-                    huf: "5.0%",
-                    firm: "5.0%",
-                    company: "5.0%",
-                    other: "5.0%"
+                    individual: "5.0%", huf: "5.0%", firm: "5.0%",
+                    company: "5.0%", other: "5.0%"
+                }
+            },
+            "194I-A": {
+                title: "Rent (Plant & Machinery)",
+                reason: "Payment for rent of machinery (e.g., vehicle lease)",
+                threshold: "₹2,40,000 per financial year",
+                rates: {
+                    individual: "2.0%", huf: "2.0%", firm: "2.0%",
+                    company: "2.0%", other: "2.0%"
+                }
+            },
+            "194I-B": {
+                title: "Rent (Land, Building, Furniture)",
+                reason: "Payment for rent of office, garage, furniture",
+                threshold: "₹2,40,000 per financial year",
+                rates: {
+                    individual: "10.0%", huf: "10.0%", firm: "10.0%",
+                    company: "10.0%", other: "10.0%"
+                }
+            },
+            "194J": {
+                title: "Fees for Professional/Technical Services",
+                reason: "Payment for fees (e.g., accountant, car repair)",
+                threshold: "₹30,000 per financial year",
+                rates: {
+                    individual: "10.0%", huf: "10.0%", firm: "10.0%",
+                    company: "10.0%", other: "10.0%"
                 }
             }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            
             const panInput = document.getElementById('panNumber');
             const partyTypeSelect = document.getElementById('partyType');
             const sectionSelect = document.getElementById('tdsSection');
@@ -211,21 +219,15 @@
             function updateTdsInfo() {
                 const section = sectionSelect.value;
                 const partyType = partyTypeSelect.value;
-
                 if (!section || !partyType) {
-                    infoBox.style.display = 'none';
-                    return;
+                    infoBox.style.display = 'none'; return;
                 }
-
                 const data = tdsData[section];
-                if (!data) { // Check if section exists
-                    infoBox.style.display = 'none';
-                    return;
+                if (!data) { 
+                    infoBox.style.display = 'none'; return;
                 }
-                
                 const rate = data.rates[partyType];
                 const partyName = partyTypeSelect.options[partyTypeSelect.selectedIndex].text;
-
                 infoBox.innerHTML = `
                     <p><strong>Section:</strong> ${section} (${data.title})</p>
                     <p><strong>Why:</strong> ${data.reason}</p>
@@ -237,37 +239,26 @@
             
             panInput.addEventListener('input', () => {
                 const pan = panInput.value.toUpperCase();
-                
                 if (pan.length >= 4) {
                     const fourthChar = pan.charAt(3);
                     let selectedType = "";
-
                     switch (fourthChar) {
                         case 'P': selectedType = "individual"; break;
                         case 'H': selectedType = "huf"; break;
                         case 'F': selectedType = "firm"; break;
                         case 'C': selectedType = "company"; break;
-                        case 'A':
-                        case 'B':
-                        case 'T':
-                        case 'L':
-                        case 'J':
-                        case 'G':
-                            selectedType = "other";
-                            break;
-                        default:
-                            selectedType = "";
+                        case 'A': case 'B': case 'T':
+                        case 'L': case 'J': case 'G':
+                            selectedType = "other"; break;
+                        default: selectedType = "";
                     }
-                    
                     partyTypeSelect.value = selectedType;
                     partyTypeSelect.dispatchEvent(new Event('change'));
-
                 } else {
                     partyTypeSelect.value = "";
                     partyTypeSelect.dispatchEvent(new Event('change'));
                 }
             });
-
             sectionSelect.addEventListener('change', updateTdsInfo);
             partyTypeSelect.addEventListener('change', updateTdsInfo);
         });
