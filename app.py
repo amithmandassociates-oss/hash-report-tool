@@ -1,9 +1,11 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import math
 from sqlalchemy import func, extract, and_
+import io  # NEW IMPORT
+import csv # NEW IMPORT
 
 # --- App & Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,7 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# --- Database Models ---
+# --- Database Models (Unchanged) ---
 class Deductee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pan_number = db.Column(db.String(10), unique=True, nullable=False, index=True)
@@ -34,23 +36,18 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     deductee_id = db.Column(db.Integer, db.ForeignKey('deductee.id'), nullable=False)
     deductee = db.relationship('Deductee', back_populates='transactions')
-    
     tds_section = db.Column(db.String(10), nullable=True, default='194C') 
     invoice_date = db.Column(db.DateTime, nullable=False)
     invoice_amount = db.Column(db.Float, nullable=False, default=0.0) 
     assessable_amount = db.Column(db.Float, nullable=False, default=0.0)
-    
-    # NEW: Fields for Payment Mode and Reference
     payment_mode = db.Column(db.String(50), nullable=True)
     payment_reference = db.Column(db.String(100), nullable=True)
-
     tds_rate = db.Column(db.Float, nullable=False, default=1.0)
     tax = db.Column(db.Float, nullable=False, default=0.0)
     sur_charge = db.Column(db.Float, nullable=False, default=0.0)
     cess = db.Column(db.Float, nullable=False, default=0.0)
     interest = db.Column(db.Float, nullable=False, default=0.0)
     total_tds = db.Column(db.Float, nullable=False, default=0.0)
-    
     challan_id = db.Column(db.Integer, db.ForeignKey('challan.id'), nullable=True)
     challan = db.relationship('Challan', back_populates='transactions')
 
@@ -69,7 +66,7 @@ class Challan(db.Model):
     transactions = db.relationship('Transaction', back_populates='challan')
 
 
-# --- Helper Function for Summaries ---
+# --- Helper Function for Summaries (Unchanged) ---
 def get_monthly_summary(year, month):
     summary = db.session.query(
         func.sum(Transaction.tax).label('total_tax'),
@@ -88,29 +85,24 @@ def get_monthly_summary(year, month):
         'total_payable': total_payable
     }
 
-# --- Helper function to calculate TDS rate ---
+# --- Helper function to calculate TDS rate (Unchanged) ---
 def get_tds_rate(pan, deductee_type, section):
     if not pan or len(pan) != 10:
-        return 20.0  # High rate for invalid PAN
-    
+        return 20.0
     if section == '194C':
-        if deductee_type in ['individual', 'huf']:
-            return 1.0
-        else:  # company, firm, other
-            return 2.0
+        return 1.0 if deductee_type in ['individual', 'huf'] else 2.0
     elif section == '194H':
         return 5.0
     elif section == '194J':
-        return 10.0 # Assuming professional fees, not technical (2%)
+        return 10.0
     elif section == '194I-A':
-        return 2.0 # Rent for Plant & Machinery
+        return 2.0
     elif section == '194I-B':
-        return 10.0 # Rent for Land/Building
-    
-    return 0.0 # Default if section not found
+        return 10.0
+    return 0.0
 
 
-# --- Routes ---
+# --- Routes (All routes are the same, except for the NEW /download_csv route) ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -126,8 +118,6 @@ def add_transaction():
         invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
         invoice_amount = float(request.form.get('invoice_amount'))
         assessable_amount = float(request.form.get('assessable_amount'))
-        
-        # NEW: Get new fields from form
         payment_mode = request.form.get('payment_mode')
         payment_reference = request.form.get('payment_reference')
         
@@ -150,7 +140,6 @@ def add_transaction():
             invoice_amount=invoice_amount, assessable_amount=assessable_amount,
             tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
             cess=cess, interest=0.0, total_tds=total_tds,
-            # NEW: Save new fields
             payment_mode=payment_mode, payment_reference=payment_reference
         )
         db.session.add(new_transaction)
@@ -173,11 +162,8 @@ def client_submit():
         deductee_type = request.form.get('deductee_type') 
         section = request.form.get('tdsSection')
         invoice_date_str = request.form.get('invoice_date')
-        # This form only has one amount, so we use it for both
         assessable_amount = float(request.form.get('assessable_amount'))
         invoice_amount = assessable_amount 
-        
-        # NEW: Get new fields from form
         payment_mode = request.form.get('payment_mode')
         payment_reference = request.form.get('payment_reference')
         
@@ -202,7 +188,6 @@ def client_submit():
             invoice_amount=invoice_amount, assessable_amount=assessable_amount,
             tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
             cess=cess, interest=0.0, total_tds=total_tds,
-            # NEW: Save new fields
             payment_mode=payment_mode, payment_reference=payment_reference
         )
         db.session.add(new_transaction)
@@ -217,6 +202,50 @@ def client_submit():
 def annexure_report():
     all_transactions = Transaction.query.order_by(Transaction.invoice_date).all()
     return render_template('annexure.html', transactions=all_transactions)
+
+# ---
+# --- NEW ROUTE FOR DOWNLOADING CSV ---
+# ---
+@app.route('/download_csv')
+def download_csv():
+    # 1. Fetch all transactions
+    all_transactions = Transaction.query.order_by(Transaction.invoice_date).all()
+    
+    # 2. Create a "file" in memory
+    si = io.StringIO()
+    cw = csv.writer(si)
+    
+    # 3. Write the Header Row
+    header = [
+        'Date', 'PAN', 'Name of Deductee', 'TDS Section', 
+        'Assessable Amount', 'TDS Rate', 'Tax', 'Cess', 'Total TDS',
+        'Payment Mode', 'Payment Reference'
+    ]
+    cw.writerow(header)
+    
+    # 4. Write all the data rows
+    for tx in all_transactions:
+        row = [
+            tx.invoice_date.strftime('%Y-%m-%d'),
+            tx.deductee.pan_number,
+            tx.deductee.name,
+            tx.tds_section,
+            tx.assessable_amount,
+            tx.tds_rate,
+            tx.tax,
+            tx.cess,
+            tx.total_tds,
+            tx.payment_mode,
+            tx.payment_reference
+        ]
+        cw.writerow(row)
+        
+    # 5. Create the response
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=tds_report.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
+
 
 @app.route('/challan')
 def challan_summary():
