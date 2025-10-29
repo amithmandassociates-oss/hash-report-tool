@@ -35,7 +35,6 @@ class Transaction(db.Model):
     deductee_id = db.Column(db.Integer, db.ForeignKey('deductee.id'), nullable=False)
     deductee = db.relationship('Deductee', back_populates='transactions')
     
-    # NEW: Store the TDS section for better reporting
     tds_section = db.Column(db.String(10), nullable=True, default='194C') 
     
     invoice_date = db.Column(db.DateTime, nullable=False)
@@ -62,7 +61,7 @@ class Challan(db.Model):
     challan_number = db.Column(db.String(50), nullable=True)
     bsr_code = db.Column(db.String(7), nullable=True)
     payment_date = db.Column(db.DateTime, nullable=True)
-    transactions = db.relationship('Transaction', back_populates='challan')
+    transactions = db.relationship('Challan', back_populates='challan')
 
 
 # --- Helper Function for Summaries ---
@@ -118,7 +117,6 @@ def add_transaction():
         pan = request.form.get('pan').upper()
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type')
-        # NEW: Get the TDS section
         section = request.form.get('tdsSection') 
         
         invoice_date_str = request.form.get('invoice_date')
@@ -134,7 +132,6 @@ def add_transaction():
             deductee.name = name
             deductee.deductee_type = deductee_type
             
-        # NEW: Use helper function for rate
         tds_rate = get_tds_rate(pan, deductee_type, section)
         
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
@@ -144,7 +141,7 @@ def add_transaction():
         
         new_transaction = Transaction(
             deductee=deductee,
-            tds_section=section, # NEW: Save the section
+            tds_section=section,
             invoice_date=invoice_date,
             invoice_amount=invoice_amount, 
             assessable_amount=assessable_amount,
@@ -155,7 +152,12 @@ def add_transaction():
             interest=0.0, 
             total_tds=total_tds
         )
-        db.session..add(new_transaction)
+        
+        # --- THIS IS THE FIX ---
+        # It was db.session..add (two dots)
+        # It is now db.session.add (one dot)
+        db.session.add(new_transaction)
+        
         db.session.commit()
         flash('Transaction saved successfully!')
     except Exception as e:
@@ -173,7 +175,6 @@ def client_submit():
         pan = request.form.get('pan').upper()
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type') 
-        # NEW: Get the TDS section
         section = request.form.get('tdsSection')
         
         invoice_date_str = request.form.get('invoice_date')
@@ -193,7 +194,6 @@ def client_submit():
             deductee.name = name
             deductee.deductee_type = deductee_type
             
-        # NEW: Use helper function for rate
         tds_rate = get_tds_rate(pan, deductee_type, section)
         
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
@@ -203,7 +203,7 @@ def client_submit():
         
         new_transaction = Transaction(
             deductee=deductee,
-            tds_section=section, # NEW: Save the section
+            tds_section=section,
             invoice_date=invoice_date,
             invoice_amount=invoice_amount,
             assessable_amount=assessable_amount,
@@ -227,7 +227,6 @@ def annexure_report():
     all_transactions = Transaction.query.order_by(Transaction.invoice_date).all()
     return render_template('annexure.html', transactions=all_transactions)
 
-# --- All other routes (challan, etc.) are the same ---
 @app.route('/challan')
 def challan_summary():
     pending_query = db.session.query(
