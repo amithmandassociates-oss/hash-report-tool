@@ -21,7 +21,7 @@
         }
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); max-height: 0; }
-            to { opacity: 1; transform: translateY(0); max-height: 300px; }
+            to { opacity: 1; transform: translateY(0); max-height: 350px; } /* Increased max-height */
         }
         .container {
             width: 100%; max-width: 550px; background-color: #ffffff;
@@ -52,7 +52,7 @@
         }
         .form-group input[readonly] {
             background-color: #f0f0f0; color: var(--theme-dark);
-            font-weight: 600; cursor: not-allowed;
+            font-weight: 600; cursor: not-allowed; border-color: #e0e0e0;
         }
         .form-group input:focus, .form-group select:focus {
             outline: none; border-color: var(--theme-red);
@@ -63,8 +63,8 @@
             font-size: 0.85em; float: right; margin-top: 6px;
         }
         .pan-helper a:hover { text-decoration: underline; }
-        
-        /* NEW: Styles for the two info boxes */
+
+        /* Styles for info/calculation boxes */
         .info-box, .calc-box {
             background-color: #fdf6f6; border-left: 4px solid var(--theme-red);
             border-radius: 4px; padding: 1px 15px; margin-top: 10px;
@@ -72,12 +72,25 @@
             animation: slideDown 0.4s ease-out; overflow: hidden;
         }
         .info-box p, .calc-box p { margin: 10px 0; }
-        .info-box strong, .calc-box strong { color: var(--theme-red); }
-        .calc-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 10px; margin-top: 15px;
-        }
+        .info-box strong, .calc-box strong { color: var(--theme-red); font-weight: 600; } /* Bolder */
         
+        /* Updated Calc Grid */
+        .calc-grid {
+            display: grid;
+            /* NEW: 3 columns for better layout */
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+            gap: 15px; /* Increased gap */
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #e0c8c9; /* Separator line */
+        }
+        /* Style for the calculation labels */
+        .calc-grid label {
+            font-size: 0.85em; /* Smaller labels */
+            color: var(--theme-text-light);
+            margin-bottom: 4px; 
+        }
+
         .message {
             padding: 15px; background-color: #d4edda; color: #155724;
             border: 1px solid #c3e6cb; border-radius: 8px;
@@ -100,68 +113,64 @@
     <div class="container">
         <div class="header">
             <img src="/static/logo_transparent.png" alt="My Trip Holidays Cochin Logo">
-            <h2>MY TRIP HOLIDAYS COCHIN</h2>
+            <h2>MY TRIP HOLIYAS COCHIN</h2>
             <p>1st Floor, ABC Building, MG Road, Kochi, Kerala</p>
         </div>
 
         <div class="form-content">
             {% with messages = get_flashed_messages() %}
               {% if messages %}
-                <div class="message">
-                  {{ messages[0] }}
-                </div>
+                <div class="message">{{ messages[0] }}</div>
               {% endif %}
             {% endwith %}
             
             <h2 style="text-align: center; margin-top: 0;">MTHC Payment Record</h2>
 
             <form action="/client_submit" method="POST">
-                <h3>Deductee Details (The party you paid)</h3>
+                <h3>Deductee Details</h3>
                 <div class="form-group">
                     <label for="panNumber">PAN Number</label>
-                    <input type="text" id="panNumber" name="pan" placeholder="Enter 10-digit PAN" maxlength="10" required>
+                    <input type="text" id="panNumber" name="pan" required maxlength="10">
                     <div class="pan-helper">
-                        <a href="https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN" target="_blank">Verify PAN Manually</a>
+                        <a href="https://eportal.incometax.gov.in/iec/foservices/#/pre-login/verifyYourPAN" target="_blank">Verify PAN</a>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="partyType">Type of Party (Auto-selected from PAN)</label>
+                    <label for="partyType">Type of Party</label>
                     <select id="partyType" name="deductee_type" required>
                         <option value="">-- Waiting for PAN --</option>
                         <option value="individual">Individual</option>
                         <option value="huf">HUF</option>
                         <option value="firm">Firm / LLP</option>
                         <option value="company">Company</option>
-                        <option value="other">Others (AOP, BOI, Trust, etc.)</option>
+                        <option value="other">Others</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="panName">Name as per PAN</label>
-                    <input type="text" id="panName" name="name" placeholder="Enter full name after verifying" required>
+                    <input type="text" id="panName" name="name" required>
                 </div>
 
                 <h3>Transaction Details</h3>
                 <div class="form-group">
                     <label for="tdsSection">Type of Payment (TDS Section)</label>
                     <select id="tdsSection" name="tdsSection" required>
-                        <option value="">-- Select a Payment Type --</option>
+                        <option value="">-- Select Payment Type --</option>
                     </select>
                 </div>
                 
-                <div class="form-group" id="rateInfoWrapper">
-                    </div>
+                <div class="form-group" id="rateInfoWrapper"></div>
 
                 <div class="form-group">
-                    <label for="assessableAmount">Assessable Amount (Amount for TDS)</label>
-                    <input type="number" step="0.01" id="assessableAmount" name="assessable_amount" placeholder="e.g., 50000" required>
+                    <label for="assessableAmount">Amount Subject to TDS</label>
+                    <input type="number" step="0.01" id="assessableAmount" name="assessable_amount" required placeholder="e.g., 50000">
                 </div>
 
-                <div class="form-group" id="calcInfoWrapper">
-                    </div>
+                <div class="form-group" id="calcInfoWrapper"></div>
                 
-                <h3>Payment Details</h3>
+                <h3>Payment to Party Details</h3>
                 <div class="form-group">
-                    <label for="paymentDate">Date of Payment to Party</label>
+                    <label for="paymentDate">Date of Payment</label>
                     <input type="date" id="paymentDate" name="invoice_date" required>
                 </div>
                 <div class="form-group">
@@ -178,7 +187,7 @@
                 </div>
                 <div class="form-group">
                     <label for="paymentReference">Payment Reference (UTR, Cheque No., etc.)</label>
-                    <input type="text" id="paymentReference" name="payment_reference" placeholder="Enter reference number">
+                    <input type="text" id="paymentReference" name="payment_reference">
                 </div>
 
                 <button type="submit" class="submit-btn">Submit Record</button>
@@ -199,17 +208,15 @@
         let currentRate = 0.0;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Get All Elements ---
+            // --- Get Elements ---
             const panInput = document.getElementById('panNumber');
             const partyTypeSelect = document.getElementById('partyType');
             const sectionSelect = document.getElementById('tdsSection');
             const assessableAmountInput = document.getElementById('assessableAmount');
-            
-            // NEW: Get the two wrapper elements
             const rateInfoWrapper = document.getElementById('rateInfoWrapper');
             const calcInfoWrapper = document.getElementById('calcInfoWrapper');
 
-            // --- Populate TDS Section Dropdown ---
+            // --- Populate Dropdown ---
             for (const sectionCode in tdsData) {
                 const option = document.createElement('option');
                 option.value = sectionCode;
@@ -217,15 +224,15 @@
                 sectionSelect.appendChild(option);
             }
 
-            // --- NEW: Function to update the Rate Info Box ---
+            // --- Update Rate Info Box ---
             function updateRateInfo() {
                 const section = sectionSelect.value;
                 const partyType = partyTypeSelect.value;
 
-                rateInfoWrapper.innerHTML = ""; // Clear old info
+                rateInfoWrapper.innerHTML = ""; 
                 currentRate = 0.0;
                 
-                if (!section || !partyType) return; // Not ready
+                if (!section || !partyType) return; 
 
                 const data = tdsData[section];
                 if (!data) return;
@@ -233,25 +240,26 @@
                 currentRate = data.rates[partyType] || 0.0;
                 const partyName = partyTypeSelect.options[partyTypeSelect.selectedIndex].text;
                 
+                // NEW: Show rate info immediately
                 const infoBox = document.createElement('div');
-                infoBox.className = 'info-box'; // Use the info-box style
+                infoBox.className = 'info-box'; 
                 infoBox.innerHTML = `
-                    <p><strong>Applicable Rate:</strong> ${currentRate}% (for ${partyName})</p>
-                    <p><strong>Threshold:</strong> TDS is required if payment exceeds ${data.threshold}.</p>
+                    <p><strong>Applicable TDS Rate:</strong> ${currentRate}% (for ${partyName})</p>
+                    <p><strong>Section Threshold:</strong> ${data.threshold}</p>
                 `;
                 rateInfoWrapper.appendChild(infoBox);
                 
-                // Also trigger calculation update
-                updateCalculations();
+                updateCalculations(); // Update calculation box too
             }
             
-            // --- NEW: Function to update the Calculation Box ---
+            // --- Update Calculation Box ---
             function updateCalculations() {
                 const amount = parseFloat(assessableAmountInput.value) || 0;
                 
-                calcInfoWrapper.innerHTML = ""; // Clear old calculations
+                calcInfoWrapper.innerHTML = ""; 
                 
-                if (amount === 0 || currentRate === 0.0) return; // Don't show calc box if no amount
+                // Only show calc box if amount > 0 AND rate is known
+                if (amount <= 0 || currentRate <= 0.0) return; 
 
                 const tds = Math.ceil(amount * (currentRate / 100.0));
                 const cess = Math.ceil(tds * 0.04);
@@ -259,24 +267,16 @@
                 const netPayable = amount - totalTDS;
 
                 const calcBox = document.createElement('div');
-                calcBox.className = 'calc-box'; // Use the calc-box style
+                calcBox.className = 'calc-box'; 
                 calcBox.innerHTML = `
                     <div class="calc-grid">
                         <div class="form-group">
-                            <label>TDS (Tax)</label>
-                            <input type="text" value="₹ ${tds.toFixed(2)}" readonly>
+                            <label>TDS Amount</label> 
+                            <input type="text" value="₹ ${totalTDS.toFixed(2)}" readonly title="Tax: ${tds.toFixed(2)}, Cess: ${cess.toFixed(2)}">
                         </div>
                         <div class="form-group">
-                            <label>Cess (4%)</label>
-                            <input type="text" value="₹ ${cess.toFixed(2)}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Total TDS Payable</label>
-                            <input type="text" value="₹ ${totalTDS.toFixed(2)}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Net Amount to Party</label>
-                            <input type="text" value="₹ ${netPayable.toFixed(2)}" readonly>
+                            <label>Net Payable to Party</label>
+                            <input type="text" value="₹ ${netPayable.toFixed(2)}" readonly title="Amount Subject to TDS (${amount.toFixed(2)}) - Total TDS (${totalTDS.toFixed(2)})">
                         </div>
                     </div>
                 `;
@@ -303,13 +303,12 @@
                 } else {
                     partyTypeSelect.value = "";
                 }
-                updateRateInfo(); // Trigger rate info update
+                updateRateInfo(); 
             });
 
             // --- Add Event Listeners ---
             sectionSelect.addEventListener('change', updateRateInfo);
             partyTypeSelect.addEventListener('change', updateRateInfo);
-Main.
             assessableAmountInput.addEventListener('input', updateCalculations);
         });
     </script>
