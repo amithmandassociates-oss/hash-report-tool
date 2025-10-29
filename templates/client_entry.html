@@ -5,83 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client Payment Record</title>
     <style>
+        /* Import a clean, modern font */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+        /* --- CSS Variables for your Logo's Color Palette --- */
+        :root {
+            --theme-red: #D71921; /* Pulled from your logo's 'M' */
+            --theme-dark: #2A2A2A; /* Pulled from the building/text */
+            --theme-grey: #f4f7f6;
+            --theme-light-grey: #f8f9fa;
+            --theme-text: #333;
+            --theme-text-light: #666;
+        }
+
+        /* --- Global Styles --- */
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0; padding: 20px;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background-color: var(--theme-grey);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
+
+        /* --- NEW: Keyframe Animations --- */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); max-height: 0; }
+            to { opacity: 1; transform: translateY(0); max-height: 200px; }
+        }
+
+        /* --- Main Content Container --- */
         .container {
-            width: 100%; max-width: 550px; background-color: #ffffff;
-            border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden; animation: fadeIn 0.5s ease-out;
+            width: 100%;
+            max-width: 550px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out; /* Apply fade-in animation */
         }
+        
+        /* --- Header for Logo and Client Info --- */
         .header {
-            text-align: center; padding: 30px;
-            background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;
+            text-align: center;
+            padding: 30px;
+            background-color: var(--theme-light-grey);
+            border-bottom: 1px solid #e9ecef;
         }
-        /* --- THIS IS THE STYLE FOR YOUR LOGO --- */
         .header img {
-            max-width: 180px; /* You can adjust this size */
+            max-width: 180px;
             margin-bottom: 15px;
         }
         .header h2 {
-            margin: 0; color: #333; font-weight: 600;
+            margin: 0;
+            color: var(--theme-dark);
+            font-weight: 600;
         }
         .header p {
-            margin: 5px 0 0; color: #666; font-size: 0.9em;
+            margin: 5px 0 0;
+            color: var(--theme-text-light);
+            font-size: 0.9em;
         }
-        .form-content { padding: 30px; }
+
+        /* --- Form Area --- */
+        .form-content {
+            padding: 30px;
+        }
+        
         h3 {
-            color: #007bff; border-bottom: 2px solid #007bff;
-            padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; font-weight: 600;
+            color: var(--theme-red); /* Use theme color */
+            border-bottom: 2px solid var(--theme-red);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
         }
-        .form-group { margin-bottom: 20px; position: relative; }
+
+        /* --- Form Groups & Inputs (More graphical) --- */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
         .form-group label {
-            display: block; font-weight: 500; margin-bottom: 8px;
-            color: #555; font-size: 0.9em;
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--theme-text-light);
+            font-size: 0.9em;
         }
         .form-group input,
         .form-group select {
-            width: 100%; padding: 12px; border: 1px solid #ccc;
-            border-radius: 8px; box-sizing: border-box; font-size: 16px;
-            font-family: 'Poppins', sans-serif; transition: all 0.3s ease;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease; /* Animation for focus */
         }
+        
+        /* NEW: Input Focus Animation */
         .form-group input:focus,
         .form-group select:focus {
-            outline: none; border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+            outline: none;
+            border-color: var(--theme-red);
+            box-shadow: 0 0 0 3px rgba(215, 25, 33, 0.1); /* Red glow */
         }
-        .pan-helper { font-size: 0.85em; text-align: right; margin-top: 6px; }
-        .pan-helper a { color: #007bff; text-decoration: none; transition: color 0.2s; }
-        .pan-helper a:hover { color: #0056b3; text-decoration: underline; }
+
+        /* --- Helper & Info Box Styles --- */
+        .pan-helper a {
+            color: var(--theme-red);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.85em;
+            float: right;
+            margin-top: 6px;
+        }
+        .pan-helper a:hover {
+            text-decoration: underline;
+        }
+        
         #tdsInfo {
-            background-color: #e6f7ff; border-left: 4px solid #007bff;
-            border-radius: 4px; padding: 12px 15px; margin-top: 10px;
-            font-size: 0.9em; color: #31708f;
+            background-color: #fdf6f6; /* Light red background */
+            border-left: 4px solid var(--theme-red);
+            border-radius: 4px;
+            padding: 12px 15px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #5c2c2e;
+            
+            /* NEW: Slide-down animation */
+            animation: slideDown 0.4s ease-out;
+            overflow: hidden;
         }
         #tdsInfo p { margin: 5px 0; }
-        #tdsInfo strong { color: #0056b3; }
+        #tdsInfo strong { color: var(--theme-red); }
+
+        /* --- Flash Message --- */
         .message {
-            padding: 15px; background-color: #d4edda; color: #1524;
-            border: 1px solid #c3e6cb; border-radius: 8px;
-            margin-bottom: 20px; text-align: center; font-weight: 500;
+            padding: 15px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
         }
+
+        /* --- Submit Button (Animated) --- */
         .submit-btn {
-            width: 100%; padding: 14px;
-            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-            color: white; border: none; border-radius: 8px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-            margin-top: 10px; transition: all 0.3s ease;
+            width: 100%;
+            padding: 14px;
+            /* NEW: Use theme colors for gradient */
+            background: linear-gradient(90deg, var(--theme-red) 0%, var(--theme-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease; /* Animation for hover */
         }
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+            transform: translateY(-3px); /* Lifts the button */
+            box-shadow: 0 4px 15px rgba(215, 25, 33, 0.3); /* Red shadow */
         }
     </style>
 </head>
@@ -91,7 +187,6 @@
         
         <div class="header">
             <img src="/static/logo.jpg" alt="Client Logo">
-            
             <h2>MY TRIP HOLIDAYS COCHIN</h2>
             <p>1st Floor, ABC Building, MG Road, Kochi, Kerala</p>
         </div>
@@ -142,7 +237,7 @@
                     </select>
                 </div>
 
-                <div class="form-group" id="tdsInfo" style="display: none;">
+                <div class="form-group" id="tdsInfoWrapper">
                     </div>
                 
                 <div class="form-group">
@@ -213,7 +308,9 @@
             const panInput = document.getElementById('panNumber');
             const partyTypeSelect = document.getElementById('partyType');
             const sectionSelect = document.getElementById('tdsSection');
-            const infoBox = document.getElementById('tdsInfo');
+            
+            // NEW: Get the wrapper element
+            const infoBoxWrapper = document.getElementById('tdsInfoWrapper');
 
             for (const sectionCode in tdsData) {
                 const option = document.createElement('option');
@@ -225,22 +322,33 @@
             function updateTdsInfo() {
                 const section = sectionSelect.value;
                 const partyType = partyTypeSelect.value;
+                
+                // Clear the info box for slide-down animation
+                infoBoxWrapper.innerHTML = "";
+
                 if (!section || !partyType) {
-                    infoBox.style.display = 'none'; return;
+                    return;
                 }
                 const data = tdsData[section];
                 if (!data) { 
-                    infoBox.style.display = 'none'; return;
+                    return;
                 }
+                
                 const rate = data.rates[partyType];
                 const partyName = partyTypeSelect.options[partyTypeSelect.selectedIndex].text;
+                
+                // Create the new info box
+                const infoBox = document.createElement('div');
+                infoBox.id = 'tdsInfo';
                 infoBox.innerHTML = `
                     <p><strong>Section:</strong> ${section} (${data.title})</p>
                     <p><strong>Why:</strong> ${data.reason}</p>
                     <p><strong>Threshold:</strong> TDS is required if payment exceeds ${data.threshold}.</p>
                     <p><strong>Applicable Rate:</strong> <strong>${rate}</strong> (for ${partyName})</p>
                 `;
-                infoBox.style.display = 'block';
+                
+                // Add the new box to the wrapper
+                infoBoxWrapper.appendChild(infoBox);
             }
             
             panInput.addEventListener('input', () => {
