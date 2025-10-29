@@ -16,7 +16,6 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #007bff; color: white; }
         tr:nth-child(even) { background-color: #f2f2f2; }
-        .file-link { background-color: #6c757d; color: white; padding: 3px 8px; text-decoration: none; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -37,7 +36,6 @@
                     <th>Date</th>
                     <th>PAN</th>
                     <th>Name of Deductee</th>
-                    <th>PAN File</th> 
                     <th>Assessable Amt</th>
                     <th>TDS Rate</th>
                     <th>Tax</th>
@@ -52,13 +50,6 @@
                     <td>{{ tx.invoice_date.strftime('%Y-%m-%d') }}</td>
                     <td>{{ tx.deductee.pan_number }}</td>
                     <td>{{ tx.deductee.name }}</td>
-                    <td>
-                        {% if tx.deductee.pan_image_path %}
-                        <a href="/uploads/{{ tx.deductee.pan_image_path }}" target="_blank" class="file-link">View File</a>
-                        {% else %}
-                        No File
-                        {% endif %}
-                    </td>
                     <td>{{ "%.2f"|format(tx.assessable_amount) }}</td>
                     <td>{{ "%.2f"|format(tx.tds_rate) }}%</td>
                     <td>{{ "%.2f"|format(tx.tax) }}</td>
