@@ -34,9 +34,7 @@ class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     deductee_id = db.Column(db.Integer, db.ForeignKey('deductee.id'), nullable=False)
     deductee = db.relationship('Deductee', back_populates='transactions')
-    
     tds_section = db.Column(db.String(10), nullable=True, default='194C') 
-    
     invoice_date = db.Column(db.DateTime, nullable=False)
     invoice_amount = db.Column(db.Float, nullable=False, default=0.0) 
     assessable_amount = db.Column(db.Float, nullable=False, default=0.0)
@@ -61,7 +59,11 @@ class Challan(db.Model):
     challan_number = db.Column(db.String(50), nullable=True)
     bsr_code = db.Column(db.String(7), nullable=True)
     payment_date = db.Column(db.DateTime, nullable=True)
-    transactions = db.relationship('Challan', back_populates='challan')
+    
+    # --- THIS IS THE FIX ---
+    # It was db.relationship('Challan', ...)
+    # It is now db.relationship('Transaction', ...)
+    transactions = db.relationship('Transaction', back_populates='challan')
 
 
 # --- Helper Function for Summaries ---
@@ -83,7 +85,7 @@ def get_monthly_summary(year, month):
         'total_payable': total_payable
     }
 
-# --- NEW: Helper function to calculate TDS rate ---
+# --- Helper function to calculate TDS rate ---
 def get_tds_rate(pan, deductee_type, section):
     if not pan or len(pan) != 10:
         return 20.0  # High rate for invalid PAN
@@ -105,8 +107,7 @@ def get_tds_rate(pan, deductee_type, section):
     return 0.0 # Default if section not found
 
 
-# --- Routes (Simplified) ---
-
+# --- Routes ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -118,7 +119,6 @@ def add_transaction():
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type')
         section = request.form.get('tdsSection') 
-        
         invoice_date_str = request.form.get('invoice_date')
         invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
         invoice_amount = float(request.form.get('invoice_amount'))
@@ -133,31 +133,18 @@ def add_transaction():
             deductee.deductee_type = deductee_type
             
         tds_rate = get_tds_rate(pan, deductee_type, section)
-        
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
         sur_charge = 0.0
         cess = math.ceil(tax * 0.04)
         total_tds = tax + sur_charge + cess
         
         new_transaction = Transaction(
-            deductee=deductee,
-            tds_section=section,
-            invoice_date=invoice_date,
-            invoice_amount=invoice_amount, 
-            assessable_amount=assessable_amount,
-            tds_rate=tds_rate, 
-            tax=tax, 
-            sur_charge=sur_charge,
-            cess=cess, 
-            interest=0.0, 
-            total_tds=total_tds
+            deductee=deductee, tds_section=section, invoice_date=invoice_date,
+            invoice_amount=invoice_amount, assessable_amount=assessable_amount,
+            tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
+            cess=cess, interest=0.0, total_tds=total_tds
         )
-        
-        # --- THIS IS THE FIX ---
-        # It was db.session..add (two dots)
-        # It is now db.session.add (one dot)
         db.session.add(new_transaction)
-        
         db.session.commit()
         flash('Transaction saved successfully!')
     except Exception as e:
@@ -176,7 +163,6 @@ def client_submit():
         name = request.form.get('name')
         deductee_type = request.form.get('deductee_type') 
         section = request.form.get('tdsSection')
-        
         invoice_date_str = request.form.get('invoice_date')
         invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
         assessable_amount = float(request.form.get('assessable_amount'))
@@ -185,9 +171,7 @@ def client_submit():
         deductee = Deductee.query.filter_by(pan_number=pan).first()
         if not deductee:
             deductee = Deductee(
-                pan_number=pan, 
-                name=name, 
-                deductee_type=deductee_type
+                pan_number=pan, name=name, deductee_type=deductee_type
             )
             db.session.add(deductee)
         else:
@@ -195,31 +179,24 @@ def client_submit():
             deductee.deductee_type = deductee_type
             
         tds_rate = get_tds_rate(pan, deductee_type, section)
-        
         tax = math.ceil(assessable_amount * (tds_rate / 100.0))
         sur_charge = 0.0
         cess = math.ceil(tax * 0.04)
         total_tds = tax + sur_charge + cess
         
         new_transaction = Transaction(
-            deductee=deductee,
-            tds_section=section,
-            invoice_date=invoice_date,
-            invoice_amount=invoice_amount,
-            assessable_amount=assessable_amount,
-            tds_rate=tds_rate, 
-            tax=tax, 
-            sur_charge=sur_charge,
-            cess=cess, 
-            interest=0.0, 
-            total_tds=total_tds
+            deductee=deductee, tds_section=section, invoice_date=invoice_date,
+            invoice_amount=invoice_amount, assessable_amount=assessable_amount,
+            tds_rate=tds_rate, tax=tax, sur_charge=sur_charge,
+            cess=cess, interest=0.0, total_tds=total_tds
         )
         db.session.add(new_transaction)
         db.session.commit()
         flash('Record submitted successfully. Thank you!')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error submitting record: {e}')
+        # Provide the actual error to the flash message for debugging
+        flash(f'Error submitting record: {str(e)}')
     return redirect(url_for('client_entry'))
 
 @app.route('/annexure')
@@ -290,9 +267,8 @@ def save_challan():
         flash('Challan payment saved successfully!')
     except Exception as e:
         db.session.rollback()
-        flash(f'Error saving challan: {e}')
+        flash(f'Error saving challan: {str(e)}')
     return redirect(url_for('challan_summary'))
-
 
 # --- Main Application Runner ---
 if __name__ == '__main__':
