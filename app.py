@@ -8,19 +8,28 @@ import io  # NEW IMPORT
 import csv # NEW IMPORT
 
 # --- App & Database Configuration ---
+# --- App & Database Configuration ---
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# --- Force PostgreSQL Connection ---
 database_uri = os.environ.get('DATABASE_URL')
-if database_uri:
-    if database_uri.startswith("postgres://"):
-        database_uri = database_uri.replace("postgres://", "postgresql://", 1)
-else:
-    database_uri = 'sqlite:///' + os.path.join(basedir, 'tds_database.db')
+
+# Check if the environment variable is missing
+if not database_uri:
+    # If DATABASE_URL is not set on Render, this will cause the app to crash on startup
+    # which is better than silently failing back to SQLite.
+    raise ValueError("DATABASE_URL environment variable is not set!")
+
+# Ensure it uses 'postgresql://' prefix required by SQLAlchemy
+if database_uri.startswith("postgres://"):
+    database_uri = database_uri.replace("postgres://", "postgresql://", 1)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'a_very_secret_key_change_this' 
+app.config['SECRET_KEY'] = 'a_very_secret_key_change_this'
+# Directly use the PostgreSQL URI from the environment variable
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# --- End of Configuration Update ---
 
 db = SQLAlchemy(app)
 
