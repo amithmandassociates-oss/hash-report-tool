@@ -36,6 +36,7 @@
                     <th>Date</th>
                     <th>PAN</th>
                     <th>Name of Deductee</th>
+                    <th>TDS Section</th>
                     <th>Assessable Amt</th>
                     <th>TDS Rate</th>
                     <th>Tax</th>
@@ -50,6 +51,7 @@
                     <td>{{ tx.invoice_date.strftime('%Y-%m-%d') }}</td>
                     <td>{{ tx.deductee.pan_number }}</td>
                     <td>{{ tx.deductee.name }}</td>
+                    <td><b>{{ tx.tds_section }}</b></td>
                     <td>{{ "%.2f"|format(tx.assessable_amount) }}</td>
                     <td>{{ "%.2f"|format(tx.tds_rate) }}%</td>
                     <td>{{ "%.2f"|format(tx.tax) }}</td>
