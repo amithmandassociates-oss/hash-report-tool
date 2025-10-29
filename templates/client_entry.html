@@ -21,7 +21,7 @@
         }
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); max-height: 0; }
-            to { opacity: 1; transform: translateY(0); max-height: 350px; } /* Increased max-height */
+            to { opacity: 1; transform: translateY(0); max-height: 350px; }
         }
         .container {
             width: 100%; max-width: 550px; background-color: #ffffff;
@@ -38,7 +38,12 @@
         .form-content { padding: 30px; }
         h3 {
             color: var(--theme-red); border-bottom: 2px solid var(--theme-red);
-            padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; font-weight: 600;
+            padding-bottom: 8px; margin-top: 25px; /* Added top margin */
+             margin-bottom: 20px; font-weight: 600;
+        }
+        /* First h3 has no top margin */
+        h3:first-of-type {
+            margin-top: 0;
         }
         .form-group { margin-bottom: 20px; position: relative; }
         .form-group label {
@@ -64,7 +69,6 @@
         }
         .pan-helper a:hover { text-decoration: underline; }
 
-        /* Styles for info/calculation boxes */
         .info-box, .calc-box {
             background-color: #fdf6f6; border-left: 4px solid var(--theme-red);
             border-radius: 4px; padding: 1px 15px; margin-top: 10px;
@@ -72,21 +76,18 @@
             animation: slideDown 0.4s ease-out; overflow: hidden;
         }
         .info-box p, .calc-box p { margin: 10px 0; }
-        .info-box strong, .calc-box strong { color: var(--theme-red); font-weight: 600; } /* Bolder */
+        .info-box strong, .calc-box strong { color: var(--theme-red); font-weight: 600; }
         
-        /* Updated Calc Grid */
         .calc-grid {
             display: grid;
-            /* NEW: 3 columns for better layout */
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-            gap: 15px; /* Increased gap */
+            gap: 15px; 
             margin-top: 15px;
             padding-top: 10px;
-            border-top: 1px dashed #e0c8c9; /* Separator line */
+            border-top: 1px dashed #e0c8c9; 
         }
-        /* Style for the calculation labels */
         .calc-grid label {
-            font-size: 0.85em; /* Smaller labels */
+            font-size: 0.85em; 
             color: var(--theme-text-light);
             margin-bottom: 4px; 
         }
@@ -113,7 +114,7 @@
     <div class="container">
         <div class="header">
             <img src="/static/logo_transparent.png" alt="My Trip Holidays Cochin Logo">
-            <h2>MY TRIP HOLIYAS COCHIN</h2>
+            <h2>MY TRIP HOLIDAYS COCHIN</h2>
             <p>1st Floor, ABC Building, MG Road, Kochi, Kerala</p>
         </div>
 
@@ -151,7 +152,7 @@
                     <input type="text" id="panName" name="name" required>
                 </div>
 
-                <h3>Transaction Details</h3>
+                <h3>Transaction & Calculation</h3>
                 <div class="form-group">
                     <label for="tdsSection">Type of Payment (TDS Section)</label>
                     <select id="tdsSection" name="tdsSection" required>
@@ -240,7 +241,6 @@
                 currentRate = data.rates[partyType] || 0.0;
                 const partyName = partyTypeSelect.options[partyTypeSelect.selectedIndex].text;
                 
-                // NEW: Show rate info immediately
                 const infoBox = document.createElement('div');
                 infoBox.className = 'info-box'; 
                 infoBox.innerHTML = `
@@ -249,7 +249,7 @@
                 `;
                 rateInfoWrapper.appendChild(infoBox);
                 
-                updateCalculations(); // Update calculation box too
+                updateCalculations(); 
             }
             
             // --- Update Calculation Box ---
@@ -258,7 +258,6 @@
                 
                 calcInfoWrapper.innerHTML = ""; 
                 
-                // Only show calc box if amount > 0 AND rate is known
                 if (amount <= 0 || currentRate <= 0.0) return; 
 
                 const tds = Math.ceil(amount * (currentRate / 100.0));
@@ -276,7 +275,7 @@
                         </div>
                         <div class="form-group">
                             <label>Net Payable to Party</label>
-                            <input type="text" value="₹ ${netPayable.toFixed(2)}" readonly title="Amount Subject to TDS (${amount.toFixed(2)}) - Total TDS (${totalTDS.toFixed(2)})">
+                            <input type="text" value="₹ ${netPayable.toFixed(2)}" readonly title="Amount (${amount.toFixed(2)}) - TDS (${totalTDS.toFixed(2)})">
                         </div>
                     </div>
                 `;
