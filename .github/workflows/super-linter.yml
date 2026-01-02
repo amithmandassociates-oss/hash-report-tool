@@ -1,0 +1,5 @@
+            - name: super-ai-linter
+  # You may pin to the exact commit or the version.
+  # uses: sagarjain007/hack-x-test@d86cd65e08de352435dbb6ee51ce419e5b0ce5a6
+  uses: sagarjain007/hack-x-test@v1.0.1
+          
