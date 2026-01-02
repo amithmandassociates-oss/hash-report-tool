@@ -6,220 +6,929 @@
     <title>Pro-Range | Forensic & Compliance Portal</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    
     <style>
-        :root { --primary-dark: #1a1a1a; --accent-blue: #0056b3; --text-light: #f8f9fa; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; padding-bottom: 80px; }
-        .navbar { background-color: var(--primary-dark); border-bottom: 2px solid var(--accent-blue); }
-        .navbar-brand { font-weight: 700; letter-spacing: 1px; color: var(--text-light) !important; }
-        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
-        
-        .pro-card { background: #fff; border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 30px; }
-        
-        .drop-zone {
-            border: 2px dashed var(--accent-blue);
-            background: #f8fbff;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
+        :root {
+            --brand-blue: #003366;
+            --brand-gold: #d4af37;
+            --btn-blue: #4666ff;
+            --btn-red: #dc3545;
+            --btn-black: #000000;
+            --bg-light: #f4f7f6;
         }
-        .drop-zone:hover { background: #edf4ff; border-color: #004494; }
-        
-        .hash-output { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--accent-blue); word-break: break-all; }
-        
-        /* Table Sticky Header */
-        .table-responsive { max-height: 60vh; border-radius: 8px; border: 1px solid #dee2e6; }
-        thead th { position: sticky; top: 0; background: #343a40 !important; color: white; z-index: 2; }
 
-        /* Chatbot Style */
-        #chatWidget { position: fixed; bottom: 85px; right: 20px; width: 300px; background: white; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); display: none; z-index: 1000; overflow: hidden; border: 1px solid #ddd; }
-        .chat-header { background: #1a1a1a; color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; }
-        .chat-trigger { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--accent-blue); color: white; border: none; font-size: 24px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-light); color: #333; }
+
+        /* TOP HEADER */
+        .top-header { background-color: #ffffff; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .top-info span { margin-right: 15px; color: #555; font-weight: 500; }
+        .top-links a { color: #666; text-decoration: none; margin-left: 15px; font-weight: 500; font-size: 0.85rem; }
+        .top-links a:hover { color: var(--brand-blue); }
+
+        /* MAIN NAVBAR */
+        .navbar-main { background-color: #ffffff; padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .navbar-brand { font-size: 1.8rem; font-weight: 900; color: var(--brand-blue) !important; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        .nav-link { color: #444 !important; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; margin: 0 10px; letter-spacing: 0.5px; }
+        .nav-link:hover { color: var(--brand-blue) !important; }
+        .nav-link.active { color: var(--brand-blue) !important; border-bottom: 3px solid var(--brand-gold); padding-bottom: 5px; }
+        .btn-contact { background-color: var(--brand-blue); color: white !important; padding: 10px 25px; border-radius: 4px; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        .btn-contact:hover { background-color: #002244; }
+
+        /* NEWS TICKER */
+        .news-ticker-area { background: var(--brand-blue); color: white; padding: 10px 0; font-size: 0.9rem; }
+        .ticker-label { background: #cfb137; color: #000; padding: 3px 10px; font-weight: 800; margin-right: 15px; font-size: 0.75rem; border-radius: 2px; text-transform: uppercase; }
+
+        /* HERO SECTION */
+        .hero-section { background-color: #f8fbfd; padding: 40px 0; border-bottom: 1px solid #e0e0e0; min-height: 80vh; }
+        
+        /* DASHBOARD TILES */
+        .btn-tile {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 90px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
+            transition: all 0.2s; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-tile:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+        .btn-tile i { font-size: 1.5rem; margin-bottom: 5px; }
+
+        .bg-csv { background-color: #4666ff; color: white; }
+        .bg-pdf { background-color: #dc3545; color: white; }
+        .bg-word { background-color: #000000; color: white; }
+        .bg-email { background-color: #ffffff; color: #dc3545; border: 1px solid #dc3545; }
+        .bg-guide { background-color: #cfb137; color: #000; }
+        .bg-clear { background-color: #ffffff; color: #666; border: 1px solid #ddd; }
+
+        /* DROP ZONE */
+        .drop-zone { 
+            border: 2px dashed var(--brand-blue); 
+            background: white; 
+            padding: 40px; 
+            border-radius: 8px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            margin-top: 20px;
+        }
+        .drop-zone:hover { background: #f0f8ff; }
+
+        /* TABLE */
+        .table-header { background-color: #e9ecef; color: #333; font-weight: 700; border-bottom: 2px solid #ccc; }
+        .hash-font { font-family: 'Courier New', monospace; font-size: 0.8rem; color: #004085; }
+        .search-input { border-radius: 4px; padding: 8px 15px; border: 1px solid #ddd; background: white; }
+
+        /* BLOG CARDS */
+        .news-section { background: #fff; padding: 60px 0; }
+        .news-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: 0.3s;
+            height: 100%;
+            background: white;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .news-card-img {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .news-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--brand-gold);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .news-card-body {
+            padding: 20px;
+        }
+        .news-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-blue);
+            margin-bottom: 10px;
+        }
+        .news-card-text {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .news-card-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .news-date {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        .news-link {
+            color: var(--brand-blue);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .news-link:hover {
+            color: #002244;
+        }
+
+        /* CHAT BOT */
+        .chat-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--brand-blue); color: white; border: none; font-size: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 2000; transition: 0.3s; }
+        .chat-btn:hover { transform: scale(1.1); }
+        #chatWidget { position: fixed; bottom: 100px; right: 30px; width: 340px; background: white; border-radius: 12px; display: none; z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid #ddd; }
+        .chat-header { background: var(--brand-blue); color: white; padding: 15px; border-radius: 12px 12px 0 0; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
+
 <body>
 
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" href="#">PRO-RANGE COMPLIANCE</a>
-        <div class="navbar-nav ms-auto">
-            <a class="nav-link text-white small" href="#library">Resource Vault</a>
-        </div>
-    </div>
-</nav>
-
-<div class="main-container">
-    <div class="pro-card">
-        <h4 class="fw-bold mb-3">Forensic Evidence Validator</h4>
-        
-        <div class="d-flex gap-2 mb-3">
-            <button class="btn btn-sm btn-outline-primary" onclick="downloadCSV()">Download CSV Report</button>
-            <button class="btn btn-sm btn-outline-danger" onclick="clearTable()">Clear All</button>
-        </div>
-
-        <p class="text-muted small">Generate SHA-256, MD5, and SHA-1 digital fingerprints locally for legal compliance. Supports PDF, DOCX, XLSX, and Media files. No data is uploaded to any server.</p>
-        
-        <div id="dropZone" class="drop-zone">
-            <h5 class="mb-1">Click or Drag Bulk Files Here</h5>
-            <p class="text-muted small mb-0">Processes unlimited files locally on your browser.</p>
-            <input type="file" id="fileInput" multiple hidden>
-        </div>
-
-        <div class="table-responsive mt-4">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th style="width: 5%">#</th>
-                        <th style="width: 20%">Filename</th>
-                        <th style="width: 25%">MD5</th>
-                        <th style="width: 25%">SHA-1</th>
-                        <th style="width: 25%">SHA-256</th>
-                    </tr>
-                </thead>
-                <tbody id="hashTableBody">
-                    </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="library" class="pro-card">
-        <h5 class="fw-bold mb-4">Professional Resource Library</h5>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="p-3 border rounded h-100">
-                    <span class="badge bg-secondary mb-2">Bare Acts</span>
-                    <h6>IT Act & Evidence Act</h6>
-                    <p class="small text-muted">Legal standards for digital evidence integrity and Section 65B compliance.</p>
-                    <a href="https://www.indiacode.nic.in" target="_blank" class="btn btn-sm btn-outline-dark">Visit IndiaCode</a>
-                </div>
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="top-info">
+                <span><i class="bi bi-telephone-fill"></i> +91-98765-43210</span>
+                <span>|</span>
+                <span><i class="bi bi-envelope-fill"></i> helpdesk@prorange.com</span>
             </div>
-            <div class="col-md-6">
-                <div class="p-3 border rounded h-100">
-                    <span class="badge bg-secondary mb-2">Govt Rulings</span>
-                    <h6>Income Tax & Audit Compliance</h6>
-                    <p class="small text-muted">Official notifications and audit requirements for digital hash logs.</p>
-                    <a href="https://www.incometaxindia.gov.in" target="_blank" class="btn btn-sm btn-outline-dark">IT Department</a>
-                </div>
+            <div class="top-links d-flex align-items-center">
+                <a href="#">Member Login</a>
+                <a href="#">UDIN Verify</a>
+                <a href="#">e-Filing</a>
+                <a href="#"><i class="bi bi-linkedin"></i></a>
+                <a href="#"><i class="bi bi-x-lg"></i></a>
             </div>
         </div>
     </div>
-</div>
 
-<button class="chat-trigger" onclick="toggleChat()">🤖</button>
-<div id="chatWidget">
-    <div class="chat-header">
-        <span>Compliance Assistant</span>
-        <span style="cursor:pointer" onclick="toggleChat()">&times;</span>
-    </div>
-    <div class="p-3">
-        <p class="small text-muted">Select a category for guidance:</p>
-        <button class="btn btn-sm btn-outline-primary w-100 mb-2 text-start" onclick="botAnswer('IT')">IT & Cyber Law Info</button>
-        <button class="btn btn-sm btn-outline-primary w-100 mb-2 text-start" onclick="botAnswer('TAX')">Income Tax Act (ITI)</button>
-        <div id="botResponse" class="mt-3 p-2 small bg-light rounded border text-primary" style="min-height: 50px;">
-            How can I assist you with legal compliance today?
+    <!-- MAIN NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-main sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-fill-check"></i> PRO-RANGE
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="#">HOME</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">FORENSIC TOOL</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#blog">OUR BLOG</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">RESOURCES</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="https://egazette.gov.in/WriteReadData/2023/250882.pdf" target="_blank"><i class="bi bi-file-pdf text-danger"></i> Bharatiya Sakshya Adhiniyam 2023</a></li>
+                            <li><a class="dropdown-item" href="https://www.meity.gov.in/writereaddata/files/it_act_2000_updated.pdf" target="_blank"><i class="bi bi-file-pdf text-danger"></i> IT Act 2000</a></li>
+                            <li><a class="dropdown-item" href="https://www.mha.gov.in/sites/default/files/CyberSafety_20112019.pdf" target="_blank"><i class="bi bi-file-pdf text-danger"></i> Cyber Safety Guidelines</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-2"><a class="btn-contact" href="#">CONTACT US</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- NEWS TICKER -->
+    <div class="news-ticker-area">
+        <div class="container d-flex align-items-center">
+            <span class="ticker-label">LATEST UPDATES</span>
+            <marquee scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();">
+                <i class="bi bi-bell-fill"></i> <strong>Jan 2026:</strong> Supreme Court ruling on digital evidence admissibility under BSA 2023. &nbsp;&nbsp;&nbsp;
+                <i class="bi bi-bell-fill"></i> <strong>Cyber Alert:</strong> CERT-In warns of phishing attacks targeting financial institutions. &nbsp;&nbsp;&nbsp;
+                <i class="bi bi-bell-fill"></i> <strong>IT Act Update:</strong> New amendments proposed for Section 66A restoration debate. &nbsp;&nbsp;&nbsp;
+                <i class="bi bi-bell-fill"></i> <strong>Tax Audit:</strong> MCA mandates digital signatures for all forensic audit reports from Jan 2026.
+            </marquee>
         </div>
     </div>
-</div>
 
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const tableBody = document.getElementById('hashTableBody');
-    const dropZone = document.getElementById('dropZone');
-    let fileQueue = [];
-    let isProcessing = false;
+    <!-- HERO SECTION -->
+    <div class="hero-section">
+        <div class="container">
+            
+            <div class="row mb-4 align-items-end">
+                <div class="col-md-8">
+                    <h2 class="fw-bold text-dark mb-1">Evidence Validation Suite</h2>
+                    <p class="text-secondary mb-0">Generate court-admissible Section 63 Certificates, Hash Reports, and Forensic Email Analysis.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="hashSearch" class="form-control border-start-0 search-input" placeholder="Search filenames..." onkeyup="filterTable()">
+                    </div>
+                </div>
+            </div>
 
-    // Trigger File Input
-    dropZone.onclick = () => fileInput.click();
-    fileInput.onchange = (e) => handleFiles(e.target.files);
+            <!-- DASHBOARD BUTTONS -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-csv" onclick="downloadSelectedCSV()">
+                        <i class="bi bi-filetype-csv"></i> CSV Report
+                    </button>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-pdf" onclick="generateHashPDF()">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Hash PDF
+                    </button>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-word" onclick="generateHashWord()">
+                        <i class="bi bi-file-word-fill"></i> Hash Word
+                    </button>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-email" onclick="generateEmailReport()">
+                        <i class="bi bi-envelope-paper"></i> Email PDF
+                    </button>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-guide" onclick="showGmailGuide()">
+                        <i class="bi bi-info-circle-fill"></i> Guide
+                    </button>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button class="btn-tile bg-clear" onclick="clearTable()">
+                        <i class="bi bi-trash"></i> Clear
+                    </button>
+                </div>
+            </div>
 
-    // Drag and Drop
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.background = "#edf4ff"; };
-    dropZone.ondragleave = () => { dropZone.style.background = "#f8fbff"; };
-    dropZone.ondrop = (e) => {
-        e.preventDefault();
-        dropZone.style.background = "#f8fbff";
-        handleFiles(e.dataTransfer.files);
-    };
+            <!-- DROP ZONE -->
+            <div id="dropZone" class="drop-zone">
+                <div class="border-2 border-primary border-dashed p-4 rounded">
+                    <i class="bi bi-cloud-arrow-up display-5 text-primary mb-3"></i>
+                    <h5 class="fw-bold">Drag & Drop Evidence Files Here</h5>
+                    <p class="text-muted small mb-0">Supports PDF, DOCX, EML, JPG. Secure Client-Side Processing.</p>
+                    <input type="file" id="fileInput" multiple hidden>
+                </div>
+            </div>
 
-    function handleFiles(files) {
-        if (!files.length) return;
-        Array.from(files).forEach((file) => {
-            const rowId = `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            tableBody.insertAdjacentHTML('beforeend', `
-                <tr id="${rowId}">
-                    <td>${tableBody.rows.length + 1}</td>
-                    <td class="small fw-bold">${file.name}</td>
-                    <td class="hash-output md5 text-muted">Pending...</td>
-                    <td class="hash-output sha1 text-muted">Pending...</td>
-                    <td class="hash-output sha256 text-muted">Pending...</td>
-                </tr>
-            `);
-            fileQueue.push({ file, rowId });
-        });
-        if (!isProcessing) processQueue();
-    }
+            <!-- HASH TABLE -->
+            <div class="mt-4 shadow-sm border rounded overflow-hidden bg-white">
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover mb-0" id="mainHashTable">
+                        <thead>
+                            <tr class="table-header">
+                                <th width="5%" class="ps-4"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+                                <th width="5%">#</th>
+                                <th width="30%">Filename</th>
+                                <th width="20%">MD5 Hash</th>
+                                <th width="40%">SHA-256 (Section 63 BSA Compliant)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hashTableBody" style="background: white;"></tbody>
+                    </table>
+                </div>
+            </div>
 
-    async function processQueue() {
-        if (fileQueue.length === 0) {
-            isProcessing = false;
-            return;
-        }
-        isProcessing = true;
-        const { file, rowId } = fileQueue.shift();
-        const reader = new FileReader();
+        </div>
+    </div>
 
-        reader.onload = function(e) {
-            const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
-            setTimeout(() => {
-                const row = document.getElementById(rowId);
-                if(row) {
-                    row.querySelector('.md5').innerText = CryptoJS.MD5(wordArray).toString();
-                    row.querySelector('.sha1').innerText = CryptoJS.SHA1(wordArray).toString();
-                    row.querySelector('.sha256').innerText = CryptoJS.SHA256(wordArray).toString();
-                    row.querySelectorAll('.hash-output').forEach(c => c.classList.remove('text-muted'));
-                }
-                processQueue();
-            }, 50);
+    <!-- BLOG/NEWS SECTION -->
+    <div id="blog" class="news-section">
+        <div class="container">
+            <h3 class="fw-bold text-center mb-2" style="color: var(--brand-blue);">Legal & Forensic Updates</h3>
+            <p class="text-center text-secondary mb-5">Stay informed on cybercrime, court rulings, and forensic best practices</p>
+            
+            <div class="row g-4">
+                <!-- Card 1: Cyber Crime -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <span class="news-badge">CYBER CRIME</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">₹50 Crore Banking Fraud: Digital Forensics Cracks Case</h5>
+                            <p class="news-card-text">Mumbai Police use email metadata analysis to trace transactions in India's largest fintech fraud. Section 63 BSA evidence proved critical.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Dec 28, 2025</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Court Ruling -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <span class="news-badge">SUPREME COURT</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">SC Upholds Digital Evidence Rules Under BSA 2023</h5>
+                            <p class="news-card-text">Landmark judgment clarifies hash verification requirements. All electronic evidence must include SHA-256 certification for admissibility.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Jan 1, 2026</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: IT Act -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <span class="news-badge">IT ACT 2000</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">New IT Rules: Email Forensics Now Mandatory</h5>
+                            <p class="news-card-text">MeitY notification requires .EML format for all legal proceedings. DKIM verification and IP tracing become standard practice.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Dec 15, 2025</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Data Privacy -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <span class="news-badge">DATA PRIVACY</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">DPDP Act 2024: Impact on Forensic Investigations</h5>
+                            <p class="news-card-text">New compliance framework affects how forensic experts handle personal data during investigations. CERT-In issues guidelines.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Dec 20, 2025</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Email Forensics -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <span class="news-badge">FORENSICS</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">Email Spoofing Case: How DKIM Verification Helps</h5>
+                            <p class="news-card-text">Delhi HC accepts email authentication report. Learn step-by-step process of extracting and verifying email headers for court.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Dec 10, 2025</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6: CERT-In Advisory -->
+                <div class="col-md-4">
+                    <div class="news-card">
+                        <div class="news-card-img" style="background-image: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                            <span class="news-badge">CERT-IN</span>
+                        </div>
+                        <div class="news-card-body">
+                            <h5 class="news-card-title">Critical Security Advisory: Ransomware Attacks Rise</h5>
+                            <p class="news-card-text">CERT-In reports 300% increase in ransomware targeting Indian firms. Best practices for evidence preservation during cyber incidents.</p>
+                        </div>
+                        <div class="news-card-footer">
+                            <span class="news-date"><i class="bi bi-calendar3"></i> Dec 5, 2025</span>
+                            <a href="#" class="news-link">Read More <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAT BUTTON -->
+    <button class="chat-btn" onclick="toggleChat()"><i class="bi bi-chat-dots-fill"></i></button>
+    
+    <!-- CHAT WIDGET -->
+    <div id="chatWidget">
+        <div class="chat-header">
+            <span><i class="bi bi-robot"></i> Expert Assistant</span>
+            <span style="cursor:pointer" onclick="toggleChat()">&times;</span>
+        </div>
+        <div class="p-3 bg-light" style="height: 300px; overflow-y: auto;">
+            <div class="mb-3 text-start"><span class="bg-white p-2 rounded shadow-sm border d-inline-block">Hello! I can help with Section 63 BSA and Tools.</span></div>
+            <div class="d-grid gap-2 text-end">
+                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="botAnswer('BSA')">What is Section 63 BSA?</button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="botAnswer('HASH')">Why use Hashing?</button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="botAnswer('EML')">How to export Emails?</button>
+            </div>
+            <div id="botResponse" class="text-start mt-3"></div>
+        </div>
+    </div>
+
+    <!-- GMAIL GUIDE MODAL -->
+    <div class="modal fade" id="emailGuideModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">How to Export Emails for Forensic Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold">Gmail:</h6>
+                    <ol>
+                        <li>Open the email you need</li>
+                        <li>Click <strong>Three Dots (⋮)</strong> on the right</li>
+                        <li>Select <strong>"Download message"</strong></li>
+                        <li>Upload the .eml file here</li>
+                    </ol>
+                    <h6 class="fw-bold mt-3">Yahoo/Outlook:</h6>
+                    <ol>
+                        <li>Open email → More → View Raw Message</li>
+                        <li>Save as .eml file</li>
+                        <li>Upload here</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const tableBody = document.getElementById('hashTableBody');
+        const dropZone = document.getElementById('dropZone');
+        let fileQueue = [];
+        let isProcessing = false;
+
+        // FILE INPUT HANDLERS
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.backgroundColor = "#e0efff"; };
+        dropZone.ondragleave = () => { dropZone.style.backgroundColor = "white"; };
+        dropZone.ondrop = (e) => { 
+            e.preventDefault(); 
+            dropZone.style.backgroundColor = "white";
+            handleFiles(e.dataTransfer.files); 
         };
-        reader.readAsArrayBuffer(file);
-    }
 
-    function downloadCSV() {
-        let csv = "Item #,Filename,MD5,SHA-1,SHA-256\n";
-        document.querySelectorAll("#hashTableBody tr").forEach(row => {
-            const cells = row.querySelectorAll("td");
-            csv += `${cells[0].innerText},"${cells[1].innerText}",${cells[2].innerText},${cells[3].innerText},${cells[4].innerText}\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Forensic_Evidence_Report.csv';
-        a.click();
-    }
-
-    function clearTable() {
-        if(confirm("Clear all hashed data?")) tableBody.innerHTML = "";
-    }
-
-    /* CHATBOT FUNCTIONS */
-    function toggleChat() {
-        const chat = document.getElementById('chatWidget');
-        chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function botAnswer(type) {
-        const res = document.getElementById('botResponse');
-        if(type === 'IT') {
-            res.innerHTML = "<strong>IT Act:</strong> Digital evidence requires SHA-256 hashing for Section 65B validation. View Bare Acts at <em>indiacode.nic.in</em>.";
-        } else if(type === 'TAX') {
-            res.innerHTML = "<strong>Income Tax:</strong> Electronic logs must be secured with hash-based audit trails to prevent tampering.";
+        // HANDLE FILES
+        function handleFiles(files) {
+            if (!files.length) return;
+            Array.from(files).forEach((file) => {
+                const rowId = `row-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                const isEml = file.name.toLowerCase().endsWith('.eml');
+                const rowCount = tableBody.rows.length + 1;
+                
+                tableBody.insertAdjacentHTML('beforeend', `
+                    <tr id="${rowId}">
+                        <td class="ps-4"><input type="checkbox" name="fileSelect" checked></td>
+                        <td>${rowCount}</td>
+                        <td class="fw-bold text-dark">
+                            ${file.name} 
+                            ${isEml ? '<span class="badge bg-danger text-white ms-2">EMAIL</span>' : ''}
+                        </td>
+                        <td class="hash-font md5">Calculating...</td>
+                        <td class="hash-font sha256">Calculating...</td>
+                    </tr>
+                `);
+                fileQueue.push({ file, rowId });
+            });
+            if (!isProcessing) processQueue();
         }
-    }
-</script>
+
+        // PROCESS QUEUE
+        async function processQueue() {
+            if (!fileQueue.length) { isProcessing = false; return; }
+            isProcessing = true;
+            const { file, rowId } = fileQueue.shift();
+            const row = document.getElementById(rowId);
+            if (row) row.fileData = file;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
+                setTimeout(() => {
+                    if (row) {
+                        row.querySelector('.md5').innerText = CryptoJS.MD5(wordArray).toString();
+                        row.querySelector('.sha256').innerText = CryptoJS.SHA256(wordArray).toString();
+                    }
+                    processQueue();
+                }, 50);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // PARSE EML - EXTRACT METADATA ONLY
+        function parseEml(text) {
+            const getVal = (name) => {
+                const match = text.match(new RegExp(`^${name}:\\s*(.*)$`, 'mi'));
+                return match ? match[1].trim() : "Not Found";
+            };
+
+            const ipMatch = text.match(/\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]/);
+            const serverIP = ipMatch ? ipMatch[1] : "Not Traced";
+            const dkim = text.includes('DKIM-Signature') ? "PASS" : "FAIL";
+
+            const bodyParts = text.split(/\r?\n\r?\n/);
+            let rawBody = bodyParts.length > 1 ? bodyParts.slice(1).join("\n") : "";
+            rawBody = rawBody.substring(0, 200).trim();
+            if (rawBody.length === 200) rawBody += "...";
+
+            return {
+                from: getVal('From'),
+                to: getVal('To'),
+                subject: getVal('Subject'),
+                date: getVal('Date'),
+                messageId: getVal('Message-ID'),
+                serverIP: serverIP,
+                dkim: dkim,
+                bodyPreview: rawBody || "No body content"
+            };
+        }
+
+        // ===== GENERATE EMAIL FORENSIC PDF (FIXED TEXT WRAPPING) =====
+        async function generateEmailReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const files = getSelectedEmlFiles();
+            
+            if (files.length === 0) { 
+                alert("Please select .EML files from the table."); 
+                return; 
+            }
+
+            // COVER PAGE
+            doc.setFillColor(0, 51, 102);
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text("DIGITAL FORENSIC EMAIL REPORT", 105, 18, { align: 'center' });
+
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(11);
+            doc.text("Under Section 63(4) of Bharatiya Sakshya Adhiniyam, 2023", 105, 45, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text(`Report Generated: ${new Date().toLocaleString('en-IN')}`, 105, 55, { align: 'center' });
+            doc.text(`Total Evidence Files: ${files.length}`, 105, 62, { align: 'center' });
+
+            // INDEX WITH TEXT WRAPPING
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text("INDEX", 20, 80);
+            
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            let indexY = 90;
+            
+            files.forEach((f, i) => {
+                const wrappedLines = doc.splitTextToSize(`${i + 1}. ${f.name}`, 170);
+                
+                wrappedLines.forEach((line, lineIndex) => {
+                    if (indexY > 270) { 
+                        doc.addPage(); 
+                        indexY = 20; 
+                    }
+                    
+                    const xPos = lineIndex === 0 ? 25 : 30;
+                    doc.text(line, xPos, indexY);
+                    indexY += 5;
+                });
+                
+                indexY += 2;
+            });
+
+            // PROCESS EACH EMAIL
+            for (let i = 0; i < files.length; i++) {
+                doc.addPage();
+                
+                const text = await readFile(files[i]);
+                const emailData = parseEml(text);
+                const sha256 = await calculateSHA256(files[i]);
+
+                // HEADER WITH WRAPPED FILENAME
+                doc.setFillColor(0, 51, 102);
+                doc.rect(0, 0, 210, 30, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`EVIDENCE RECORD #${i + 1}`, 15, 10);
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                const fileNameLines = doc.splitTextToSize(`File: ${files[i].name}`, 180);
+                
+                let fileNameY = 16;
+                fileNameLines.forEach((line) => {
+                    doc.text(line, 15, fileNameY);
+                    fileNameY += 4;
+                });
+
+                const tableStartY = Math.max(35, 10 + fileNameLines.length * 4 + 10);
+                
+                doc.setTextColor(0, 0, 0);
+                doc.autoTable({
+                    startY: tableStartY,
+                    head: [['Field', 'Value']],
+                    body: [
+                        ['Subject', emailData.subject],
+                        ['From', emailData.from],
+                        ['To', emailData.to],
+                        ['Date', emailData.date],
+                        ['Message-ID', emailData.messageId],
+                        ['Originating IP', emailData.serverIP],
+                        ['DKIM Status', emailData.dkim],
+                        ['SHA-256 Hash', sha256]
+                    ],
+                    theme: 'grid',
+                    headStyles: { 
+                        fillColor: [0, 51, 102], 
+                        fontSize: 10,
+                        fontStyle: 'bold'
+                    },
+                    bodyStyles: { 
+                        fontSize: 9,
+                        cellPadding: 3
+                    },
+                    columnStyles: {
+                        0: { 
+                            cellWidth: 40, 
+                            fontStyle: 'bold',
+                            halign: 'left'
+                        },
+                        1: { 
+                            cellWidth: 140,
+                            cellPadding: 3,
+                            overflow: 'linebreak',
+                            cellWidth: 'wrap'
+                        }
+                    }
+                });
+
+                const finalY = doc.lastAutoTable.finalY + 10;
+                let currentY = finalY > 250 ? (doc.addPage(), 20) : finalY;
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text("Body Preview (First 200 characters):", 15, currentY);
+                
+                doc.setFontSize(8);
+                doc.setFont('courier', 'normal');
+                const bodyLines = doc.splitTextToSize(emailData.bodyPreview, 180);
+                doc.text(bodyLines, 15, currentY + 8);
+
+                const pageHeight = doc.internal.pageSize.height;
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'italic');
+                doc.text("This metadata was extracted directly from the original .eml file without alteration.", 15, pageHeight - 20);
+                doc.text("__________________________", 15, pageHeight - 10);
+                doc.text("Forensic Examiner Signature", 15, pageHeight - 5);
+            }
+
+            doc.save("Forensic_Email_Report.pdf", { compress: true });
+        }
+
+        // ===== GENERATE HASH PDF =====
+        function generateHashPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt', 'a4');
+            
+            doc.setFillColor(0, 51, 102);
+            doc.rect(0, 0, 842, 50, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text("FORENSIC HASH REPORT", 421, 32, { align: 'center' });
+
+            const rows = [];
+            document.querySelectorAll("#hashTableBody tr").forEach(tr => {
+                if (tr.querySelector('input').checked) {
+                    const cells = tr.querySelectorAll('td');
+                    rows.push([
+                        cells[1].innerText,
+                        cells[2].innerText,
+                        cells[4].innerText
+                    ]);
+                }
+            });
+
+            if (rows.length === 0) {
+                alert("Please select files to include in report.");
+                return;
+            }
+
+            doc.autoTable({
+                startY: 70,
+                head: [['#', 'Filename', 'SHA-256']],
+                body: rows,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [0, 51, 102],
+                    fontSize: 11,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: { 
+                    fontSize: 9,
+                    font: 'courier'
+                },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 300 },
+                    2: { cellWidth: 450, font: 'courier' }
+                }
+            });
+
+            doc.save("Hash_Report.pdf", { compress: true });
+        }
+
+        // ===== GENERATE HASH WORD =====
+        function generateHashWord() {
+            if (typeof docx === 'undefined') { 
+                alert("Word library loading..."); 
+                return; 
+            }
+            
+            const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType } = docx;
+            
+            const rows = [];
+            
+            rows.push(new TableRow({
+                children: [
+                    new TableCell({
+                        children: [new Paragraph({ 
+                            children: [new TextRun({ text: "#", bold: true, color: "FFFFFF" })],
+                            alignment: AlignmentType.CENTER
+                        })],
+                        shading: { fill: "003366" }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph({ 
+                            children: [new TextRun({ text: "Filename", bold: true, color: "FFFFFF" })],
+                            alignment: AlignmentType.CENTER
+                        })],
+                        shading: { fill: "003366" }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph({ 
+                            children: [new TextRun({ text: "SHA-256", bold: true, color: "FFFFFF" })],
+                            alignment: AlignmentType.CENTER
+                        })],
+                        shading: { fill: "003366" }
+                    })
+                ]
+            }));
+
+            document.querySelectorAll("#hashTableBody tr").forEach(tr => {
+                if (tr.querySelector('input').checked) {
+                    const cells = tr.querySelectorAll('td');
+                    rows.push(new TableRow({
+                        children: [
+                            new TableCell({ children: [new Paragraph(cells[1].innerText)] }),
+                            new TableCell({ children: [new Paragraph(cells[2].innerText)] }),
+                            new TableCell({ children: [new Paragraph({ 
+                                children: [new TextRun({ text: cells[4].innerText, font: "Courier New", size: 18 })]
+                            })] })
+                        ]
+                    }));
+                }
+            });
+
+            if (rows.length === 1) {
+                alert("Please select files to include in report.");
+                return;
+            }
+
+            const doc = new Document({
+                sections: [{
+                    children: [
+                        new Paragraph({
+                            children: [new TextRun({ 
+                                text: "FORENSIC HASH REPORT", 
+                                bold: true, 
+                                size: 32,
+                                color: "003366"
+                            })],
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 400 }
+                        }),
+                        new Table({
+                            rows: rows,
+                            width: { size: 100, type: WidthType.PERCENTAGE }
+                        })
+                    ]
+                }]
+            });
+
+            Packer.toBlob(doc).then(blob => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "Hash_Report.docx";
+                a.click();
+            });
+        }
+
+        // ===== DOWNLOAD CSV =====
+        function downloadSelectedCSV() {
+            let csv = "#,Subject,From,To,Date,Originating IP,DKIM,SHA-256\n";
+            
+            let counter = 1;
+            const promises = [];
+            
+            document.querySelectorAll("#hashTableBody tr").forEach(tr => {
+                if (tr.querySelector('input').checked && tr.fileData && tr.fileData.name.toLowerCase().endsWith('.eml')) {
+                    const cells = tr.querySelectorAll('td');
+                    promises.push(
+                        readFile(tr.fileData).then(text => {
+                            const eml = parseEml(text);
+                            return `${counter++},"${eml.subject}","${eml.from}","${eml.to}","${eml.date}","${eml.serverIP}","${eml.dkim}","${cells[4].innerText}"\n`;
+                        })
+                    );
+                }
+            });
+
+            Promise.all(promises).then(rows => {
+                csv += rows.join('');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "Email_Report.csv";
+                a.click();
+            });
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function getSelectedEmlFiles() {
+            const files = [];
+            document.querySelectorAll("#hashTableBody tr").forEach(tr => {
+                if (tr.querySelector('input').checked && tr.fileData && tr.fileData.name.toLowerCase().endsWith('.eml')) {
+                    files.push(tr.fileData);
+                }
+            });
+            return files;
+        }
+
+        function readFile(file) {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsText(file);
+            });
+        }
+
+        async function calculateSHA256(file) {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
+                    resolve(CryptoJS.SHA256(wordArray).toString());
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function toggleAll(checkbox) {
+            document.querySelectorAll('input[name="fileSelect"]').forEach(c => c.checked = checkbox.checked);
+        }
+
+        function filterTable() {
+            const value = document.getElementById('hashSearch').value.toUpperCase();
+            document.querySelectorAll("#hashTableBody tr").forEach(row => {
+                row.style.display = row.innerText.toUpperCase().includes(value) ? "" : "none";
+            });
+        }
+
+        function clearTable() {
+            if (confirm("Clear all files from the table?")) {
+                tableBody.innerHTML = "";
+            }
+        }
+
+        function showGmailGuide() {
+            new bootstrap.Modal(document.getElementById('emailGuideModal')).show();
+        }
+
+        function toggleChat() {
+            const chat = document.getElementById('chatWidget');
+            chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function botAnswer(type) {
+            const response = document.getElementById('botResponse');
+            let text = "";
+            if (type === 'BSA') text = "Section 63(4) of BSA 2023 (formerly 65B IEA) requires electronic evidence to be accompanied by a certificate for court admissibility.";
+            if (type === 'HASH') text = "SHA-256 cryptographic hash ensures file integrity and proves the evidence hasn't been tampered with since collection.";
+            if (type === 'EML') text = "Gmail: Open email → Three Dots (⋮) → Download message. Always use .EML format for legal integrity.";
+            response.innerHTML = `<span class="bg-primary text-white p-2 rounded shadow-sm d-inline-block mt-2">${text}</span>`;
+        }
+    </script>
 
 </body>
 </html>
