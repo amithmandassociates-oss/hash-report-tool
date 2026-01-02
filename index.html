@@ -3,119 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>John Moris | Forensic & Legal Portal</title>
+    <title>Pro-Range | Forensic & Compliance Portal</title>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
     <style>
-        :root { --primary: #0d1b2a; --gold: #e0e1dd; --accent: #3498db; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f6; }
-        .navbar { background-color: var(--primary); border-bottom: 3px solid var(--accent); }
-        .nav-link { color: #fff !important; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
-        .hero-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 30px; margin-top: 30px; }
-        .doc-card { transition: transform 0.3s; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .doc-card:hover { transform: translateY(-5px); }
+        :root { --primary-dark: #1a1a1a; --accent-blue: #0056b3; --text-light: #f8f9fa; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; }
+        .navbar { background-color: var(--primary-dark); border-bottom: 2px solid var(--accent-blue); }
+        .navbar-brand { font-weight: 700; letter-spacing: 1px; color: var(--text-light) !important; }
+        .main-container { max-width: 1100px; margin: 30px auto; padding: 0 15px; }
+        .pro-card { background: #fff; border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 30px; }
+        .drop-zone { border: 2px dashed var(--accent-blue); background: #f8fbff; padding: 40px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .drop-zone:hover { background: #edf4ff; }
+        .hash-output { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--accent-blue); word-break: break-all; }
         
-        /* Chatbot UI */
-        #chat-widget { position: fixed; bottom: 30px; right: 30px; width: 320px; z-index: 9999; display: none; }
-        .chat-box { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .chat-header { background: var(--primary); color: white; padding: 15px; font-weight: bold; }
-        .chat-trigger { position: fixed; bottom: 30px; right: 30px; background: var(--accent); border: none; border-radius: 50%; width: 60px; height: 60px; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        /* Payment Section Styles */
+        .payment-box { background: #fff8e1; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg">
     <div class="container">
-        <a class="navbar-brand text-white fw-bold" href="#">JOHN MORIS & CO.</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#tool">Forensic Tool</a></li>
-                <li class="nav-item"><a class="nav-link" href="#library">Downloads</a></li>
-                <li class="nav-item"><a class="nav-link" href="#blog">Blog/Events</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://www.ajohnmoris.com">Professional Site</a></li>
-            </ul>
+        <a class="navbar-brand" href="#">PRO-RANGE COMPLIANCE</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link text-white small" href="#blog">Legal Blog</a>
+            <a class="nav-link text-white small" href="#library">Resource Vault</a>
         </div>
     </div>
 </nav>
 
-<div class="container">
-    <section id="tool" class="hero-card">
-        <h2 class="fw-bold text-center">Bulk Digital Evidence Reporter</h2>
-        <p class="text-center text-muted mb-4">Secure Local Hashing for Legal Professionals</p>
-        <div id="dropZone" class="p-5 border border-primary border-2 border-dashed rounded text-center bg-light" style="cursor:pointer;">
-            <h5>Drag Files Here or Click to Upload</h5>
+<div class="main-container">
+    <div class="pro-card">
+        <h4 class="fw-bold mb-3">Forensic Evidence Validator</h4>
+        <p class="text-muted small">Generate SHA-256 digital fingerprints locally for Evidence Act compliance. No data ever leaves your device.</p>
+        
+        <div id="dropZone" class="drop-zone">
+            <h5 class="mb-1">Click or Drag Files Here</h5>
+            <p class="text-muted mb-0">Select documents for instant hashing</p>
             <input type="file" id="fileInput" multiple hidden>
         </div>
-    </section>
 
-    <section id="library" class="mt-5">
-        <h4 class="fw-bold mb-4">Knowledge Bank: Bare Acts & Guides</h4>
+        <div class="table-responsive mt-4">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 5%">#</th>
+                        <th style="width: 35%">Filename</th>
+                        <th style="width: 60%">SHA-256 Hash Value</th>
+                    </tr>
+                </thead>
+                <tbody id="hashTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="library" class="pro-card">
+        <h5 class="fw-bold mb-4">Professional Resource Library</h5>
         <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card doc-card h-100">
-                    <div class="card-body">
-                        <span class="badge bg-success mb-2">FREE</span>
-                        <h6>Income Tax Act 1961</h6>
-                        <p class="small text-muted">Complete Bare Act with latest notifications.</p>
-                        <a href="https://www.incometaxindia.gov.in" class="btn btn-sm btn-primary w-100">Download PDF</a>
+            <div class="col-md-6">
+                <div class="p-3 border rounded">
+                    <span class="badge bg-secondary mb-2">Public Access</span>
+                    <h6>IT Act & Evidence Act Summary</h6>
+                    <p class="small text-muted">A concise guide for legal professionals.</p>
+                    <a href="#" class="btn btn-sm btn-outline-dark">Download PDF</a>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="p-3 border rounded border-primary">
+                    <span class="badge bg-primary mb-2">Premium Content</span>
+                    <h6>Advanced Cyber-Forensic Checklist</h6>
+                    <p class="small text-muted">Step-by-step procedure for expert testimony.</p>
+                    
+                    <div class="payment-box">
+                        <p class="small mb-2 text-dark"><strong>Fee: $5.00</strong></p>
+                        <a href="https://www.paypal.com/ncp/payment/YOUR_LINK_ID" target="_blank" class="btn btn-sm btn-success w-100">
+                            Pay & Download Instantly
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card doc-card h-100 border-primary">
-                    <div class="card-body">
-                        <span class="badge bg-warning text-dark mb-2">PREMIUM</span>
-                        <h6>Cyber Law Case Study</h6>
-                        <p class="small text-muted">Expert analysis of recent Court Rulings.</p>
-                        <button class="btn btn-sm btn-dark w-100">Unlock Document</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="blog" class="mt-5 mb-5">
-        <h4 class="fw-bold mb-4">Latest Legal Events</h4>
-        <div class="card shadow-sm mb-3">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1">New IT Act Amendments for 2026</h6>
-                    <small class="text-muted">Posted on Jan 2, 2026</small>
-                </div>
-                <button class="btn btn-outline-primary btn-sm">Read More</button>
-            </div>
-        </div>
-    </section>
-</div>
-
-<button class="chat-trigger" onclick="toggleChat()">🤖</button>
-<div id="chat-widget">
-    <div class="chat-box">
-        <div class="chat-header d-flex justify-content-between">
-            <span>Legal Bot</span>
-            <span style="cursor:pointer" onclick="toggleChat()">×</span>
-        </div>
-        <div class="p-3">
-            <p class="small">Ask me about:</p>
-            <button class="btn btn-outline-secondary btn-sm w-100 mb-1" onclick="askBot('IT')">IT Act / Cyber Law</button>
-            <button class="btn btn-outline-secondary btn-sm w-100 mb-1" onclick="askBot('ITI')">Income Tax (ITI)</button>
-            <div id="bot-output" class="mt-3 p-2 bg-light small rounded border">Select a topic above...</div>
         </div>
     </div>
 </div>
 
 <script>
-    function toggleChat() {
-        const chat = document.getElementById('chat-widget');
-        chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+    const fileInput = document.getElementById('fileInput');
+    const tableBody = document.getElementById('hashTableBody');
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => processFiles(e.target.files);
+
+    function processFiles(files) {
+        if (!files.length) return;
+        Array.from(files).forEach((file, index) => {
+            const rowId = `row-${Date.now()}-${index}`;
+            tableBody.insertAdjacentHTML('beforeend', `
+                <tr id="${rowId}">
+                    <td>${tableBody.rows.length + 1}</td>
+                    <td class="small fw-bold">${file.name}</td>
+                    <td class="hash-output">Processing...</td>
+                </tr>
+            `);
+            calculateHash(file, rowId);
+        });
     }
-    function askBot(topic) {
-        const out = document.getElementById('bot-output');
-        if(topic === 'IT') out.innerHTML = "<b>IT Act Info:</b> Access latest Cyber Security rulings and Bare Acts at IndiaCode.gov.in.";
-        if(topic === 'ITI') out.innerHTML = "<b>Income Tax Info:</b> Download latest ITI forms and Bare Acts from the Income Tax Department portal.";
+
+    function calculateHash(file, rowId) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
+            const hash = CryptoJS.SHA256(wordArray).toString();
+            document.getElementById(rowId).querySelector('.hash-output').innerText = hash;
+        };
+        reader.readAsArrayBuffer(file);
     }
 </script>
+
 </body>
 </html>
