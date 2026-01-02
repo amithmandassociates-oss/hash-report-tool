@@ -10,17 +10,34 @@
 
     <style>
         :root { --primary-dark: #1a1a1a; --accent-blue: #0056b3; --text-light: #f8f9fa; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #333; padding-bottom: 80px; }
         .navbar { background-color: var(--primary-dark); border-bottom: 2px solid var(--accent-blue); }
         .navbar-brand { font-weight: 700; letter-spacing: 1px; color: var(--text-light) !important; }
-        .main-container { max-width: 1100px; margin: 30px auto; padding: 0 15px; }
-        .pro-card { background: #fff; border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 30px; }
-        .drop-zone { border: 2px dashed var(--accent-blue); background: #f8fbff; padding: 40px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .drop-zone:hover { background: #edf4ff; }
-        .hash-output { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--accent-blue); word-break: break-all; }
+        .main-container { max-width: 1200px; margin: 30px auto; padding: 0 15px; }
         
-        /* Payment Section Styles */
-        .payment-box { background: #fff8e1; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        .pro-card { background: #fff; border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; margin-bottom: 30px; }
+        
+        .drop-zone {
+            border: 2px dashed var(--accent-blue);
+            background: #f8fbff;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .drop-zone:hover { background: #edf4ff; border-color: #004494; }
+        
+        .hash-output { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--accent-blue); word-break: break-all; }
+        
+        /* Table Sticky Header */
+        .table-responsive { max-height: 60vh; border-radius: 8px; border: 1px solid #dee2e6; }
+        thead th { position: sticky; top: 0; background: #343a40 !important; color: white; z-index: 2; }
+
+        /* Chatbot Style */
+        #chatWidget { position: fixed; bottom: 85px; right: 20px; width: 300px; background: white; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); display: none; z-index: 1000; overflow: hidden; border: 1px solid #ddd; }
+        .chat-header { background: #1a1a1a; color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; }
+        .chat-trigger { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--accent-blue); color: white; border: none; font-size: 24px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -29,7 +46,6 @@
     <div class="container">
         <a class="navbar-brand" href="#">PRO-RANGE COMPLIANCE</a>
         <div class="navbar-nav ms-auto">
-            <a class="nav-link text-white small" href="#blog">Legal Blog</a>
             <a class="nav-link text-white small" href="#library">Resource Vault</a>
         </div>
     </div>
@@ -38,24 +54,33 @@
 <div class="main-container">
     <div class="pro-card">
         <h4 class="fw-bold mb-3">Forensic Evidence Validator</h4>
-        <p class="text-muted small">Generate SHA-256 digital fingerprints locally for Evidence Act compliance. No data ever leaves your device.</p>
+        
+        <div class="d-flex gap-2 mb-3">
+            <button class="btn btn-sm btn-outline-primary" onclick="downloadCSV()">Download CSV Report</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="clearTable()">Clear All</button>
+        </div>
+
+        <p class="text-muted small">Generate SHA-256, MD5, and SHA-1 digital fingerprints locally for legal compliance. Supports PDF, DOCX, XLSX, and Media files. No data is uploaded to any server.</p>
         
         <div id="dropZone" class="drop-zone">
-            <h5 class="mb-1">Click or Drag Files Here</h5>
-            <p class="text-muted mb-0">Select documents for instant hashing</p>
+            <h5 class="mb-1">Click or Drag Bulk Files Here</h5>
+            <p class="text-muted small mb-0">Processes unlimited files locally on your browser.</p>
             <input type="file" id="fileInput" multiple hidden>
         </div>
 
         <div class="table-responsive mt-4">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr>
                         <th style="width: 5%">#</th>
-                        <th style="width: 35%">Filename</th>
-                        <th style="width: 60%">SHA-256 Hash Value</th>
+                        <th style="width: 20%">Filename</th>
+                        <th style="width: 25%">MD5</th>
+                        <th style="width: 25%">SHA-1</th>
+                        <th style="width: 25%">SHA-256</th>
                     </tr>
                 </thead>
-                <tbody id="hashTableBody"></tbody>
+                <tbody id="hashTableBody">
+                    </tbody>
             </table>
         </div>
     </div>
@@ -64,28 +89,37 @@
         <h5 class="fw-bold mb-4">Professional Resource Library</h5>
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="p-3 border rounded">
-                    <span class="badge bg-secondary mb-2">Public Access</span>
-                    <h6>IT Act & Evidence Act Summary</h6>
-                    <p class="small text-muted">A concise guide for legal professionals.</p>
-                    <a href="#" class="btn btn-sm btn-outline-dark">Download PDF</a>
+                <div class="p-3 border rounded h-100">
+                    <span class="badge bg-secondary mb-2">Bare Acts</span>
+                    <h6>IT Act & Evidence Act</h6>
+                    <p class="small text-muted">Legal standards for digital evidence integrity and Section 65B compliance.</p>
+                    <a href="https://www.indiacode.nic.in" target="_blank" class="btn btn-sm btn-outline-dark">Visit IndiaCode</a>
                 </div>
             </div>
-            
             <div class="col-md-6">
-                <div class="p-3 border rounded border-primary">
-                    <span class="badge bg-primary mb-2">Premium Content</span>
-                    <h6>Advanced Cyber-Forensic Checklist</h6>
-                    <p class="small text-muted">Step-by-step procedure for expert testimony.</p>
-                    
-                    <div class="payment-box">
-                        <p class="small mb-2 text-dark"><strong>Fee: $5.00</strong></p>
-                        <a href="https://www.paypal.com/ncp/payment/YOUR_LINK_ID" target="_blank" class="btn btn-sm btn-success w-100">
-                            Pay & Download Instantly
-                        </a>
-                    </div>
+                <div class="p-3 border rounded h-100">
+                    <span class="badge bg-secondary mb-2">Govt Rulings</span>
+                    <h6>Income Tax & Audit Compliance</h6>
+                    <p class="small text-muted">Official notifications and audit requirements for digital hash logs.</p>
+                    <a href="https://www.incometaxindia.gov.in" target="_blank" class="btn btn-sm btn-outline-dark">IT Department</a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<button class="chat-trigger" onclick="toggleChat()">🤖</button>
+<div id="chatWidget">
+    <div class="chat-header">
+        <span>Compliance Assistant</span>
+        <span style="cursor:pointer" onclick="toggleChat()">&times;</span>
+    </div>
+    <div class="p-3">
+        <p class="small text-muted">Select a category for guidance:</p>
+        <button class="btn btn-sm btn-outline-primary w-100 mb-2 text-start" onclick="botAnswer('IT')">IT & Cyber Law Info</button>
+        <button class="btn btn-sm btn-outline-primary w-100 mb-2 text-start" onclick="botAnswer('TAX')">Income Tax Act (ITI)</button>
+        <div id="botResponse" class="mt-3 p-2 small bg-light rounded border text-primary" style="min-height: 50px;">
+            How can I assist you with legal compliance today?
         </div>
     </div>
 </div>
@@ -94,33 +128,96 @@
     const fileInput = document.getElementById('fileInput');
     const tableBody = document.getElementById('hashTableBody');
     const dropZone = document.getElementById('dropZone');
+    let fileQueue = [];
+    let isProcessing = false;
 
+    // Trigger File Input
     dropZone.onclick = () => fileInput.click();
-    fileInput.onchange = (e) => processFiles(e.target.files);
+    fileInput.onchange = (e) => handleFiles(e.target.files);
 
-    function processFiles(files) {
+    // Drag and Drop
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.background = "#edf4ff"; };
+    dropZone.ondragleave = () => { dropZone.style.background = "#f8fbff"; };
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.style.background = "#f8fbff";
+        handleFiles(e.dataTransfer.files);
+    };
+
+    function handleFiles(files) {
         if (!files.length) return;
-        Array.from(files).forEach((file, index) => {
-            const rowId = `row-${Date.now()}-${index}`;
+        Array.from(files).forEach((file) => {
+            const rowId = `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             tableBody.insertAdjacentHTML('beforeend', `
                 <tr id="${rowId}">
                     <td>${tableBody.rows.length + 1}</td>
                     <td class="small fw-bold">${file.name}</td>
-                    <td class="hash-output">Processing...</td>
+                    <td class="hash-output md5 text-muted">Pending...</td>
+                    <td class="hash-output sha1 text-muted">Pending...</td>
+                    <td class="hash-output sha256 text-muted">Pending...</td>
                 </tr>
             `);
-            calculateHash(file, rowId);
+            fileQueue.push({ file, rowId });
         });
+        if (!isProcessing) processQueue();
     }
 
-    function calculateHash(file, rowId) {
+    async function processQueue() {
+        if (fileQueue.length === 0) {
+            isProcessing = false;
+            return;
+        }
+        isProcessing = true;
+        const { file, rowId } = fileQueue.shift();
         const reader = new FileReader();
+
         reader.onload = function(e) {
             const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
-            const hash = CryptoJS.SHA256(wordArray).toString();
-            document.getElementById(rowId).querySelector('.hash-output').innerText = hash;
+            setTimeout(() => {
+                const row = document.getElementById(rowId);
+                if(row) {
+                    row.querySelector('.md5').innerText = CryptoJS.MD5(wordArray).toString();
+                    row.querySelector('.sha1').innerText = CryptoJS.SHA1(wordArray).toString();
+                    row.querySelector('.sha256').innerText = CryptoJS.SHA256(wordArray).toString();
+                    row.querySelectorAll('.hash-output').forEach(c => c.classList.remove('text-muted'));
+                }
+                processQueue();
+            }, 50);
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    function downloadCSV() {
+        let csv = "Item #,Filename,MD5,SHA-1,SHA-256\n";
+        document.querySelectorAll("#hashTableBody tr").forEach(row => {
+            const cells = row.querySelectorAll("td");
+            csv += `${cells[0].innerText},"${cells[1].innerText}",${cells[2].innerText},${cells[3].innerText},${cells[4].innerText}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Forensic_Evidence_Report.csv';
+        a.click();
+    }
+
+    function clearTable() {
+        if(confirm("Clear all hashed data?")) tableBody.innerHTML = "";
+    }
+
+    /* CHATBOT FUNCTIONS */
+    function toggleChat() {
+        const chat = document.getElementById('chatWidget');
+        chat.style.display = chat.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function botAnswer(type) {
+        const res = document.getElementById('botResponse');
+        if(type === 'IT') {
+            res.innerHTML = "<strong>IT Act:</strong> Digital evidence requires SHA-256 hashing for Section 65B validation. View Bare Acts at <em>indiacode.nic.in</em>.";
+        } else if(type === 'TAX') {
+            res.innerHTML = "<strong>Income Tax:</strong> Electronic logs must be secured with hash-based audit trails to prevent tampering.";
+        }
     }
 </script>
 
