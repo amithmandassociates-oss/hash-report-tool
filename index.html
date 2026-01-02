@@ -1,14 +1,4 @@
 <!DOCTYPE html>
-window.onload = () => {
-    const log = document.getElementById('console-log');
-    log.innerHTML += `<br>> [SYSTEM] Roadmap: SHA-3 Hashing support is currently being funded.`;
-    log.innerHTML += `<br>> [SYSTEM] Want this feature? Fund it here: [Insert your Algora Issue Link]`;
-};
-<div class="text-center">
-    <span class="badge rounded-pill bg-info text-dark">
-        🔒 100% Client-Side: No files are uploaded to any server.
-    </span>
-</div>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -22,12 +12,12 @@ window.onload = () => {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* Dark Mode Variables */
         :root {
             --bg-color: #f4f6f9;
             --text-color: #333333;
             --card-bg: #ffffff;
             --table-head: #343a40;
+            --console-bg: #f8f9fa;
         }
 
         [data-theme="dark"] {
@@ -35,6 +25,7 @@ window.onload = () => {
             --text-color: #e0e0e0;
             --card-bg: #1e1e1e;
             --table-head: #000000;
+            --console-bg: #2d2d2d;
         }
 
         body { 
@@ -55,6 +46,18 @@ window.onload = () => {
             margin-bottom: 20px;
         }
 
+        #console-log {
+            background-color: var(--console-bg);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
         .table-responsive {
             background: var(--card-bg);
             border-radius: 8px;
@@ -70,10 +73,13 @@ window.onload = () => {
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <button id="theme-toggle" class="btn btn-outline-secondary">🌙 Dark Mode</button>
-        
+        <div class="text-center">
+            <span class="badge rounded-pill bg-info text-dark">
+                🔒 100% Client-Side: No files are uploaded to any server.
+            </span>
+        </div>
         <div>
-            <a href="https://github.com/amithmandassociates-oss/hash-report-tool" 
-               class="btn btn-primary btn-sm">⚡ Analyze Code with Gemini</a>
+            <a href="https://github.com/amithmandassociates-oss/hash-report-tool" class="btn btn-primary btn-sm">⚡ Analyze Code</a>
         </div>
     </div>
 
@@ -81,8 +87,13 @@ window.onload = () => {
         <h2 class="text-center">Bulk Digital Evidence Hash Reporter</h2>
         <p class="text-center text-muted">Forensic Hash Generation for Case Records</p>
 
+        <div id="console-log">
+            > [SYSTEM] Terminal Initialized...
+        </div>
+
         <div class="drop-zone" id="dropZone">
             <h4>Drag & Drop Bulk Files Here</h4>
+            <p>or click to browse</p>
             <input type="file" id="fileInput" multiple hidden>
         </div>
 
@@ -116,18 +127,37 @@ window.onload = () => {
         </div>
     </div>
 
+    <footer class="mt-5 p-4 border-top text-center bg-light">
+        <div class="container">
+            <p class="mb-1"><strong>Amith M and Associates - Forensic Suite</strong></p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="#" class="text-decoration-none">💖 Sponsor Development</a>
+                <span class="text-muted">|</span>
+                <a href="#" class="text-decoration-none">⚖️ Commercial License</a>
+                <span class="text-muted">|</span>
+                <a href="#" class="text-decoration-none">👨‍⚖️ Expert Services</a>
+            </div>
+            <p class="mt-3 small text-muted">Licensed for individual use.</p>
+        </div>
+    </footer>
+
     <script>
-        /* THEME TOGGLE LOGIC */
+        /* INITIALIZATION */
+        window.onload = () => {
+            const log = document.getElementById('console-log');
+            log.innerHTML += `<br>> [SYSTEM] Roadmap: SHA-3 Hashing support is currently being funded.`;
+            log.innerHTML += `<br>> [SYSTEM] Want this feature? Fund it here: [Insert Link]`;
+        };
+
+        /* THEME TOGGLE */
         const toggleBtn = document.getElementById('theme-toggle');
         toggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
                 toggleBtn.textContent = '🌙 Dark Mode';
             } else {
                 document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
                 toggleBtn.textContent = '☀️ Light Mode';
             }
         });
@@ -135,6 +165,7 @@ window.onload = () => {
         /* HASHING LOGIC */
         const fileInput = document.getElementById('fileInput');
         const tableBody = document.getElementById('tableBody');
+        const log = document.getElementById('console-log');
         let fileQueue = [];
         let totalFiles = 0;
 
@@ -142,31 +173,24 @@ window.onload = () => {
         fileInput.onchange = (e) => handleFiles(e.target.files);
 
         function handleFiles(files) {
-            // Around Line 140
-function handleFiles(files) {
-    if (!files.length) return;
+            if (!files.length) return;
 
-    // INSERT LOGIC HERE:
-    const log = document.getElementById('console-log');
-    const timestamp = new Date().toLocaleTimeString();
-    log.innerHTML += `<br>> [${timestamp}] Input Detected: ${files.length} file(s) added to queue.`;
-    log.scrollTop = log.scrollHeight; // Keeps the newest log visible
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<br>> [${timestamp}] Input Detected: ${files.length} file(s) added.`;
+            log.scrollTop = log.scrollHeight;
 
-    // Original loop continues below...
-    Array.from(files).forEach(file => {
-        totalFiles++;
-        // ... rest of code
             Array.from(files).forEach(file => {
                 totalFiles++;
+                document.getElementById('counter').innerText = `Files: ${totalFiles}`;
                 const rowId = `row-${totalFiles}`;
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr id="${rowId}">
                         <td>${totalFiles}</td>
                         <td>${file.name}</td>
                         <td>${(file.size/1024).toFixed(2)} KB</td>
-                        <td class="hash-cell">...</td>
-                        <td class="hash-cell">...</td>
-                        <td class="hash-cell">...</td>
+                        <td class="hash-cell text-muted italic">Processing...</td>
+                        <td class="hash-cell text-muted italic">Processing...</td>
+                        <td class="hash-cell text-muted italic">Processing...</td>
                     </tr>
                 `);
                 fileQueue.push({ file, rowId });
@@ -176,13 +200,16 @@ function handleFiles(files) {
 
         async function processQueue() {
             if (fileQueue.length === 0) return;
+            
             const { file, rowId } = fileQueue.shift();
             const reader = new FileReader();
+            
             reader.onload = function(e) {
                 const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
-                document.getElementById(rowId).cells[3].innerText = CryptoJS.MD5(wordArray).toString();
-                document.getElementById(rowId).cells[4].innerText = CryptoJS.SHA1(wordArray).toString();
-                document.getElementById(rowId).cells[5].innerText = CryptoJS.SHA256(wordArray).toString();
+                const row = document.getElementById(rowId);
+                row.cells[3].innerText = CryptoJS.MD5(wordArray).toString();
+                row.cells[4].innerText = CryptoJS.SHA1(wordArray).toString();
+                row.cells[5].innerText = CryptoJS.SHA256(wordArray).toString();
                 processQueue();
             };
             reader.readAsArrayBuffer(file);
@@ -203,42 +230,25 @@ function handleFiles(files) {
             XLSX.writeFile(wb, "Evidence_Report.xlsx");
         }
 
-       function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'pt'); // 'l' for landscape to fit hash columns
-    
-    // 1. Add your Logo (Base64 string)
-    // Parameters: imgData, format, x, y, width, height
-    const imgData = 'YOUR_BASE64_STRING_HERE'; 
-    try {
-        doc.addImage(imgData, 'PNG', 40, 20, 50, 50); 
-    } catch (e) {
-        console.log("Logo not found, skipping image addition.");
-    }
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt'); 
+            
+            doc.setFontSize(18);
+            doc.text("Amith M and Associates", 40, 40);
+            doc.setFontSize(12);
+            doc.text("Digital Evidence Hash Report", 40, 60);
+            
+            doc.autoTable({ 
+                html: '#hashTable', 
+                startY: 80,
+                theme: 'striped',
+                headStyles: { fillColor: [52, 58, 64] },
+                styles: { fontSize: 7 } 
+            });
 
-    // 2. Add Firm Title and Report Name
-    doc.setFontSize(18);
-    doc.text("Amith M and Associates", 100, 40);
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text("Digital Evidence Hash Report", 100, 60);
-    
-    // 3. Add Date/Time of Report
-    const date = new Date().toLocaleString();
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${date}`, 40, 90);
-
-    // 4. Generate the Table
-    doc.autoTable({ 
-        html: '#hashTable', 
-        startY: 110,
-        theme: 'striped',
-        headStyles: { fillColor: [52, 58, 64] }, // Dark header
-        styles: { fontSize: 8 } // Smaller font to fit long hashes
-    });
-
-    doc.save("Evidence_Hash_Report.pdf");
-}
+            doc.save("Evidence_Hash_Report.pdf");
+        }
 
         function downloadFile(content, fileName, mimeType) {
             const a = document.createElement("a");
@@ -249,23 +259,5 @@ function handleFiles(files) {
 
         function clearTable() { if(confirm("Clear list?")) location.reload(); }
     </script>
-
-    </body>
-    <footer class="mt-5 p-4 border-top text-center bg-light">
-    <div class="container">
-        <p class="mb-1"><strong>Amith M and Associates - Forensic Suite</strong></p>
-        <div class="d-flex justify-content-center gap-3">
-            <a href="https://github.com/sponsors/yourusername" class="text-decoration-none">💖 Sponsor Development</a>
-            <span class="text-muted">|</span>
-            <a href="mailto:your@email.com" class="text-decoration-none">⚖️ Request Commercial License</a>
-            <span class="text-muted">|</span>
-            <a href="https://yourfirm.com/consulting" class="text-decoration-none">👨‍⚖️ Expert Witness Services</a>
-        </div>
-        <p class="mt-3 small text-muted">Licensed for individual use. Corporate use requires a Commercial License.</p>
-    </div>
-</footer>
+</body>
 </html>
-
-
-
-
