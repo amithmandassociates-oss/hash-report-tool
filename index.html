@@ -137,6 +137,20 @@
         fileInput.onchange = (e) => handleFiles(e.target.files);
 
         function handleFiles(files) {
+            // Around Line 140
+function handleFiles(files) {
+    if (!files.length) return;
+
+    // INSERT LOGIC HERE:
+    const log = document.getElementById('console-log');
+    const timestamp = new Date().toLocaleTimeString();
+    log.innerHTML += `<br>> [${timestamp}] Input Detected: ${files.length} file(s) added to queue.`;
+    log.scrollTop = log.scrollHeight; // Keeps the newest log visible
+
+    // Original loop continues below...
+    Array.from(files).forEach(file => {
+        totalFiles++;
+        // ... rest of code
             Array.from(files).forEach(file => {
                 totalFiles++;
                 const rowId = `row-${totalFiles}`;
@@ -233,4 +247,5 @@
 
     </body>
 </html>
+
 
