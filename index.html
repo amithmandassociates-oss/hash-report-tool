@@ -289,7 +289,8 @@
                                 <th width="5%">#</th>
                                 <th width="30%">Filename</th>
                                 <th width="20%">MD5 Hash</th>
-                                <th width="40%">SHA-256 (Section 63 BSA Compliant)</th>
+                                <th width="30%">SHA-256 (Section 63 BSA Compliant)</th>
+                                <th width="30%">SHA-3 (FIPS 202)</th>
                             </tr>
                         </thead>
                         <tbody id="hashTableBody" style="background: white;"></tbody>
@@ -497,6 +498,7 @@
                         </td>
                         <td class="hash-font md5">Calculating...</td>
                         <td class="hash-font sha256">Calculating...</td>
+                        <td class="hash-font sha3">Calculating...</td>
                     </tr>
                 `);
                 fileQueue.push({ file, rowId });
@@ -517,8 +519,14 @@
                 const wordArray = CryptoJS.lib.WordArray.create(e.target.result);
                 setTimeout(() => {
                     if (row) {
-                        row.querySelector('.md5').innerText = CryptoJS.MD5(wordArray).toString();
-                        row.querySelector('.sha256').innerText = CryptoJS.SHA256(wordArray).toString();
+                       row.querySelector('.md5').innerText =
+                        CryptoJS.MD5(wordArray).toString();
+
+                        row.querySelector('.sha256').innerText =
+                       CryptoJS.SHA256(wordArray).toString();
+                      row.querySelector('.sha3').innerText =
+                      CryptoJS.SHA3(wordArray, { outputLength: 256 }).toString();
+                    console.log(`SHA-3 calculated for ${file.name}`);    
                     }
                     processQueue();
                 }, 50);
@@ -613,6 +621,11 @@
                 const text = await readFile(files[i]);
                 const emailData = parseEml(text);
                 const sha256 = await calculateSHA256(files[i]);
+                const sha3 = CryptoJS.SHA3(
+    CryptoJS.lib.WordArray.create(await files[i].arrayBuffer()),
+    { outputLength: 256 }
+).toString();
+
 
                 // HEADER WITH WRAPPED FILENAME
                 doc.setFillColor(0, 51, 102);
@@ -646,7 +659,8 @@
                         ['Message-ID', emailData.messageId],
                         ['Originating IP', emailData.serverIP],
                         ['DKIM Status', emailData.dkim],
-                        ['SHA-256 Hash', sha256]
+                        ['SHA-256 Hash', sha256],
+                         ['SHA-3 Hash (FIPS 202)', sha3]
                     ],
                     theme: 'grid',
                     headStyles: { 
@@ -715,7 +729,8 @@
                     rows.push([
                         cells[1].innerText,
                         cells[2].innerText,
-                        cells[4].innerText
+                        cells[4].innerText,
+                        cells[5].innerText
                     ]);
                 }
             });
@@ -727,7 +742,7 @@
 
             doc.autoTable({
                 startY: 70,
-                head: [['#', 'Filename', 'SHA-256']],
+                head: [['#', 'Filename', 'SHA-256', 'SHA-3']],
                 body: rows,
                 theme: 'grid',
                 headStyles: { 
@@ -740,10 +755,12 @@
                     font: 'courier'
                 },
                 columnStyles: {
-                    0: { cellWidth: 40 },
-                    1: { cellWidth: 300 },
-                    2: { cellWidth: 450, font: 'courier' }
-                }
+                     0: { cellWidth: 40 },
+                1: { cellWidth: 250 },
+                2: { cellWidth: 260, font: 'courier' },
+                3: { cellWidth: 260, font: 'courier' }
+                 }
+
             });
 
             doc.save("Hash_Report.pdf", { compress: true });
@@ -755,6 +772,7 @@
                 alert("Word library loading..."); 
                 return; 
             }
+            
             
             const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType } = docx;
             
@@ -782,25 +800,50 @@
                             alignment: AlignmentType.CENTER
                         })],
                         shading: { fill: "003366" }
-                    })
+                    }),
+                    new TableCell({
+                     children: [new Paragraph({ 
+                     children: [new TextRun({ 
+                     text: "SHA-3", 
+                      bold: true, 
+                          color: "FFFFFF" 
+                     })],
+                         alignment: AlignmentType.CENTER
+                              })],
+                        shading: { fill: "003366" }
+                        })          
                 ]
             }));
 
-            document.querySelectorAll("#hashTableBody tr").forEach(tr => {
-                if (tr.querySelector('input').checked) {
-                    const cells = tr.querySelectorAll('td');
-                    rows.push(new TableRow({
-                        children: [
-                            new TableCell({ children: [new Paragraph(cells[1].innerText)] }),
-                            new TableCell({ children: [new Paragraph(cells[2].innerText)] }),
-                            new TableCell({ children: [new Paragraph({ 
-                                children: [new TextRun({ text: cells[4].innerText, font: "Courier New", size: 18 })]
-                            })] })
-                        ]
-                    }));
-                }
-            });
-
+           document.querySelectorAll("#hashTableBody tr").forEach(tr => {
+    if (tr.querySelector('input').checked) {
+        const cells = tr.querySelectorAll('td');
+        rows.push(new TableRow({
+            children: [
+                new TableCell({ children: [new Paragraph(cells[1].innerText)] }),
+                new TableCell({ children: [new Paragraph(cells[2].innerText)] }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({
+                            text: cells[4].innerText,
+                            font: "Courier New",
+                            size: 18
+                        })]
+                    })]
+                }),
+                new TableCell({
+                    children: [new Paragraph({
+                        children: [new TextRun({
+                            text: cells[5].innerText,
+                            font: "Courier New",
+                            size: 18
+                        })]
+                    })]
+                })
+            ]
+        }));
+    }
+});
             if (rows.length === 1) {
                 alert("Please select files to include in report.");
                 return;
@@ -837,7 +880,7 @@
 
         // ===== DOWNLOAD CSV =====
         function downloadSelectedCSV() {
-            let csv = "#,Subject,From,To,Date,Originating IP,DKIM,SHA-256\n";
+           let csv = "#,Subject,From,To,Date,Originating IP,DKIM,SHA-256,SHA-3\n";
             
             let counter = 1;
             const promises = [];
@@ -848,7 +891,8 @@
                     promises.push(
                         readFile(tr.fileData).then(text => {
                             const eml = parseEml(text);
-                            return `${counter++},"${eml.subject}","${eml.from}","${eml.to}","${eml.date}","${eml.serverIP}","${eml.dkim}","${cells[4].innerText}"\n`;
+                           return `${counter++},"${eml.subject}","${eml.from}","${eml.to}","${eml.date}","${eml.serverIP}","${eml.dkim}","${cells[4].innerText}","${cells[5].innerText}"\n`;
+
                         })
                     );
                 }
